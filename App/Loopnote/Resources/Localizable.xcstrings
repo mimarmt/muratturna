@@ -2223,6 +2223,38 @@
     },
     "%@ ★": {
       "shouldTranslate": false
+    },
+    "1. Create a key on elevenlabs.io": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. elevenlabs.io'da anahtar oluştur"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. Schlüssel auf elevenlabs.io erstellen"
+          }
+        }
+      }
+    },
+    "2. Copy the key there, then tap Paste.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. Anahtarı orada kopyala, sonra Yapıştır'a dokun."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. Kopiere dort den Schlüssel und tippe dann auf Einsetzen."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

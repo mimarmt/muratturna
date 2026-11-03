@@ -230,6 +230,21 @@ private struct ElevenLabsSection: View {
                     }
                     .disabled(voiceID.isEmpty || loading)
                 } else {
+                    Link(destination: URL(string: "https://elevenlabs.io/app/developers/api-keys")!) {
+                        Label("1. Create a key on elevenlabs.io", systemImage: "arrow.up.right.square")
+                    }
+                    PasteButton(payloadType: String.self) { strings in
+                        let key = (strings.first ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                        Task { @MainActor in
+                            Keychain.set(key, for: ElevenLabsClient.keyAccount)
+                            hasKey = ElevenLabsClient.apiKey != nil
+                            await loadVoices()
+                        }
+                    }
+                    .labelStyle(.titleAndIcon)
+                    .tint(Theme.amber)
+                    Text("2. Copy the key there, then tap Paste.")
+                        .font(.footnote).foregroundStyle(.secondary)
                     SecureField("ElevenLabs API key", text: $keyDraft)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
