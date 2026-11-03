@@ -24,6 +24,7 @@
 | 16 | İsim | **Loopnote** (App Store: "Loopnote – Voice Reminders") |
 | 18 | Tasarım yönü | Mimari ve minimal: bol boşluk, ince çizgiler, güçlü tipografi, ışık/gölge vurgusu |
 | 19 | Renk ve tipografi | Monokrom + tek vurgu rengi (sıcak amber); başlıklar New York (serif), metin SF Pro; açık/koyu mod sistemi izler |
+| 20 | Gelir modeli | Freemium: ücretsiz (10 aktif not, 2 proje) + Loopnote Pro (sınırsız not/proje, kritik notlar, Personal Voice, Watch, widget, Live Activities, iCloud). Fiyat: aylık $2.99, yıllık $19.99 (7 gün deneme), ömür boyu $49.99 |
 
 ## Teknoloji
 
