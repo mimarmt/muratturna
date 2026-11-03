@@ -125,6 +125,9 @@ jobs:
           fi
           xcrun altool --upload-app -f "$RUNNER_TEMP"/export/*.ipa -t ios \
             --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" --output-format normal
+      - name: Set up internal testers
+        if: env.APP_RECORD_EXISTS == 'yes'
+        run: python3 ci/asc_testers.py
       - name: Clean up signing assets
         if: always()
         run: |
