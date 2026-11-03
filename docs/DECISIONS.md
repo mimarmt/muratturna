@@ -45,6 +45,8 @@
 
 - CI/CD: GitHub Actions (macOS runner, Xcode 27) → otomatik TestFlight
 - Team ID: `RQ82R94TUH`
+- App Store Connect API: Key ID `KTN24G5LBZ` (Admin, "Loopnote CI"), Issuer ID `55f74e1d-057f-4e6b-ac66-a8b5cac5ea0a`
+- Özel anahtar yalnızca GitHub Secret olarak: `ASC_KEY_P8`
 - Bundle ID: `com.muratturna.loopnote`
 
 ## Doğrulanacaklar
