@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<defs>
+<radialGradient id="bg" cx="0.5" cy="0.42" r="0.75"><stop offset="0" stop-color="#22252c"/><stop offset="1" stop-color="#040506"/></radialGradient>
+<radialGradient id="orb" cx="0.5" cy="0.35" r="0.7"><stop offset="0" stop-color="#3a3f4a" stop-opacity="0.55"/><stop offset="0.7" stop-color="#101216" stop-opacity="0.85"/><stop offset="1" stop-color="#050506" stop-opacity="0.95"/></radialGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="0.45" stop-color="#ffffff" stop-opacity="0.08"/><stop offset="1" stop-color="#FFB24D" stop-opacity="0.9"/></linearGradient>
+<linearGradient id="hi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+<linearGradient id="amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE3B3"/><stop offset="0.5" stop-color="#FFA53D"/><stop offset="1" stop-color="#F07A12"/></linearGradient>
+<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="22" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+</defs>
+<rect width="1024" height="1024" fill="url(#bg)"/>
+<g fill="none" stroke="#FFA53D">
+<circle cx="512" cy="512" r="300" stroke-width="5" stroke-opacity="0.55"/>
+<circle cx="512" cy="512" r="362" stroke-width="4" stroke-opacity="0.32"/>
+<circle cx="512" cy="512" r="426" stroke-width="3" stroke-opacity="0.16"/>
+</g>
+<ellipse cx="512" cy="790" rx="200" ry="40" fill="#FFA53D" opacity="0.35" filter="url(#bl)"/>
+<circle cx="512" cy="512" r="236" fill="url(#orb)"/>
+<g filter="url(#glow)" fill="url(#amber)"><rect x="392" y="477.0" width="28" height="70" rx="14"/><rect x="436" y="427.0" width="28" height="170" rx="14"/><rect x="480" y="367.0" width="28" height="290" rx="14"/><rect x="524" y="397.0" width="28" height="230" rx="14"/><rect x="568" y="442.0" width="28" height="140" rx="14"/><rect x="612" y="482.0" width="28" height="60" rx="14"/></g>
+<circle cx="512" cy="512" r="236" fill="none" stroke="url(#rim)" stroke-width="6"/>
+<path d="M 330 420 A 200 200 0 0 1 694 420 Q 512 360 330 420 Z" fill="url(#hi)"/>
+</svg>
