@@ -27,22 +27,25 @@ struct SettingsView: View {
                 Text("Notes due during quiet hours are read together when quiet hours end.")
             }
 
+            ElevenLabsSection()
+
             Section {
                 ForEach(VoiceCatalog.languages, id: \.self) { lang in
                     VoicePickerRow(language: lang)
                 }
-                if VoiceCatalog.languages.contains(where: VoiceCatalog.onlyCompactInstalled) {
+                let compact = VoiceCatalog.languages.filter(VoiceCatalog.onlyCompactInstalled)
+                if !compact.isEmpty {
                     Label {
-                        Text("For a more natural sound, download an Enhanced or Premium voice: Settings › Accessibility › Read & Speak › Voices.")
+                        Text("Only compact voices for \(compact.map(VoicePickerRow.shortName).formatted(.list(type: .and))). Download an Enhanced voice in Settings › Accessibility › Read & Speak › Voices.")
                             .font(.footnote)
                     } icon: {
                         Image(systemName: "sparkles").foregroundStyle(Theme.amber)
                     }
                 }
             } header: {
-                Text("Voices")
+                Text("Apple voices")
             } footer: {
-                Text("Each note is read in its own language with the voice you choose here.")
+                Text("Each note is read in its own language. Apple voices are also used when ElevenLabs is off or offline.")
             }
 
             Section {
@@ -146,18 +149,21 @@ private struct VoicePickerRow: View {
     @State private var selection: String = ""
 
     private var voices: [AVSpeechSynthesisVoice] { VoiceCatalog.voices(for: language) }
-    private var languageName: String {
-        Locale.current.localizedString(forIdentifier: language) ?? language
+    static func shortName(_ language: String) -> String {
+        Locale.current.localizedString(forLanguageCode: String(language.prefix(2)))?.localizedCapitalized ?? language
     }
 
     var body: some View {
         HStack {
-            Picker(languageName, selection: $selection) {
+            Text(Self.shortName(language))
+            Spacer()
+            Picker(Self.shortName(language), selection: $selection) {
                 Text("Automatic").tag("")
                 ForEach(voices, id: \.identifier) { v in
                     Text("\(v.name) · \(VoiceCatalog.qualityLabel(v))").tag(v.identifier)
                 }
             }
+            .labelsHidden()
             Button {
                 let sample = switch language.prefix(2) {
                 case "tr": "Yarın saat onda belediyeye eksik evrakları götür."
@@ -174,6 +180,105 @@ private struct VoicePickerRow: View {
         .onAppear { selection = AppSettings.voiceIdentifier(for: language) ?? "" }
         .onChange(of: selection) { _, id in
             UserDefaults.standard.set(id, forKey: AppSettings.voiceKey(for: language))
+        }
+    }
+}
+
+/// Bring-your-own-key ElevenLabs voices (testing phase; a server proxy replaces this before release).
+private struct ElevenLabsSection: View {
+    @AppStorage(AppSettings.Key.elevenEnabled) private var enabled = false
+    @AppStorage(AppSettings.Key.elevenVoiceID) private var voiceID = ""
+    @AppStorage(AppSettings.Key.elevenVoiceName) private var voiceName = ""
+    @AppStorage(AppSettings.Key.elevenModel) private var model = ElevenLabsClient.Model.multilingualV2.rawValue
+
+    @State private var keyDraft = ""
+    @State private var hasKey = ElevenLabsClient.apiKey != nil
+    @State private var voices: [ElevenLabsClient.Voice] = []
+    @State private var loading = false
+    @State private var error: String?
+
+    var body: some View {
+        Section {
+            Toggle(isOn: $enabled) {
+                Label("Natural voice (ElevenLabs)", systemImage: "waveform.badge.plus")
+            }
+            if enabled {
+                if hasKey {
+                    LabeledContent("API key") {
+                        Button("Remove", role: .destructive) {
+                            Keychain.set(nil, for: ElevenLabsClient.keyAccount)
+                            hasKey = false
+                            voices = []
+                        }
+                    }
+                    Picker("Voice", selection: $voiceID) {
+                        if voiceID.isEmpty { Text("Choose…").tag("") }
+                        if !voiceID.isEmpty && !voices.contains(where: { $0.voice_id == voiceID }) {
+                            Text(voiceName.isEmpty ? voiceID : voiceName).tag(voiceID)
+                        }
+                        ForEach(voices) { v in
+                            Text(v.category == "cloned" ? "\(v.name) ★" : v.name).tag(v.voice_id)
+                        }
+                    }
+                    Picker("Model", selection: $model) {
+                        ForEach(ElevenLabsClient.Model.allCases) { Text($0.label).tag($0.rawValue) }
+                    }
+                    Button {
+                        Task { await preview() }
+                    } label: {
+                        Label("Preview natural voice", systemImage: "play.circle")
+                    }
+                    .disabled(voiceID.isEmpty || loading)
+                } else {
+                    SecureField("ElevenLabs API key", text: $keyDraft)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    Button("Save key") {
+                        Keychain.set(keyDraft.trimmingCharacters(in: .whitespacesAndNewlines),
+                                     for: ElevenLabsClient.keyAccount)
+                        keyDraft = ""
+                        hasKey = ElevenLabsClient.apiKey != nil
+                        Task { await loadVoices() }
+                    }
+                    .disabled(keyDraft.isBlank)
+                }
+                if loading { ProgressView() }
+                if let error { Text(error).font(.footnote).foregroundStyle(.red) }
+            }
+        } header: {
+            Text("Natural voice")
+        } footer: {
+            Text("Only the short spoken title is sent to ElevenLabs, once per note; the audio is stored on your iPhone. ★ marks your cloned voices. Create a key at elevenlabs.io › Developers › API keys.")
+        }
+        .task(id: hasKey) { if enabled && hasKey && voices.isEmpty { await loadVoices() } }
+        .onChange(of: enabled) { _, on in if on && hasKey && voices.isEmpty { Task { await loadVoices() } } }
+        .onChange(of: voiceID) { _, id in
+            voiceName = voices.first { $0.voice_id == id }?.name ?? voiceName
+        }
+    }
+
+    private func loadVoices() async {
+        loading = true
+        defer { loading = false }
+        do {
+            voices = try await ElevenLabsClient.voices()
+            error = nil
+            if voiceID.isEmpty, let first = voices.first { voiceID = first.voice_id }
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    private func preview() async {
+        loading = true
+        defer { loading = false }
+        do {
+            try await SpeechRenderer.shared.previewElevenLabs(
+                "Yarın saat onda belediyeye eksik evrakları götürmeyi unutma.",
+                voiceID: voiceID, model: model)
+            error = nil
+        } catch {
+            self.error = error.localizedDescription
         }
     }
 }

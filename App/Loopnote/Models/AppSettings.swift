@@ -12,6 +12,10 @@ enum AppSettings {
         static let usePersonalVoice = "voice.personal"
         static let speechRate = "voice.rate"
         static let onboarded = "onboarded"
+        static let elevenEnabled = "eleven.enabled"
+        static let elevenVoiceID = "eleven.voice.id"
+        static let elevenVoiceName = "eleven.voice.name"
+        static let elevenModel = "eleven.model"
     }
 
     static func registerDefaults() {
@@ -32,6 +36,15 @@ enum AppSettings {
     }
 
     static var usePersonalVoice: Bool { d.bool(forKey: Key.usePersonalVoice) }
+
+    /// ElevenLabs voice to use, when enabled and configured.
+    static var elevenVoice: (id: String, model: String)? {
+        guard d.bool(forKey: Key.elevenEnabled),
+              let id = d.string(forKey: Key.elevenVoiceID), !id.isEmpty,
+              ElevenLabsClient.apiKey != nil else { return nil }
+        let model = d.string(forKey: Key.elevenModel) ?? ElevenLabsClient.Model.multilingualV2.rawValue
+        return (id, model)
+    }
 
     static func voiceKey(for language: String) -> String { "voice.id." + language.prefix(2) }
     static func voiceIdentifier(for language: String) -> String? {

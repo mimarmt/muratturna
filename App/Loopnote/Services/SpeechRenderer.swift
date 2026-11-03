@@ -9,6 +9,7 @@ final class SpeechRenderer {
     nonisolated static let maxSeconds: Double = 29
 
     private let synthesizer = AVSpeechSynthesizer()
+    private var player: AVAudioPlayer?
 
     static var soundsDirectory: URL {
         let url = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
@@ -19,6 +20,26 @@ final class SpeechRenderer {
 
     /// Returns the file name (inside Library/Sounds) for the spoken text, rendering it if needed.
     func soundFile(for text: String, language: String) async -> String? {
+        if let eleven = await elevenLabsFile(for: text) { return eleven }
+        return await appleSoundFile(for: text, language: language)
+    }
+
+    /// Renders with ElevenLabs when it is enabled; nil means "use the Apple voice".
+    private func elevenLabsFile(for text: String) async -> String? {
+        guard let voice = AppSettings.elevenVoice else { return nil }
+        let name = "ln-\(Self.stableHash("el|\(voice.id)|\(voice.model)|\(text)")).wav"
+        let url = Self.soundsDirectory.appendingPathComponent(name)
+        if FileManager.default.fileExists(atPath: url.path) { return name }
+        do {
+            try await ElevenLabsClient.render(text: text, voiceID: voice.id, model: voice.model, to: url)
+            return name
+        } catch {
+            try? FileManager.default.removeItem(at: url)
+            return nil
+        }
+    }
+
+    private func appleSoundFile(for text: String, language: String) async -> String? {
         let personal = AppSettings.usePersonalVoice
         let rate = AppSettings.speechRate
         let voiceID = VoiceCatalog.voice(for: language, allowPersonal: personal)?.identifier
@@ -38,6 +59,31 @@ final class SpeechRenderer {
 
     /// Speaks immediately (used by "Listen again" and previews).
     func speakNow(_ text: String, language: String) {
+        Task {
+            if let name = await elevenLabsFile(for: text) {
+                play(Self.soundsDirectory.appendingPathComponent(name))
+            } else {
+                speakWithApple(text, language: language)
+            }
+        }
+    }
+
+    /// Previews a specific ElevenLabs voice (used by the voice picker).
+    func previewElevenLabs(_ text: String, voiceID: String, model: String) async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("preview-\(voiceID)-\(model).wav")
+        try await ElevenLabsClient.render(text: text, voiceID: voiceID, model: model, to: url)
+        play(url)
+    }
+
+    private func play(_ url: URL) {
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+        try? AVAudioSession.sharedInstance().setActive(true)
+        synthesizer.stopSpeaking(at: .immediate)
+        player = try? AVAudioPlayer(contentsOf: url)
+        player?.play()
+    }
+
+    private func speakWithApple(_ text: String, language: String) {
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = VoiceCatalog.voice(for: language, allowPersonal: AppSettings.usePersonalVoice)
         utterance.rate = AppSettings.speechRate

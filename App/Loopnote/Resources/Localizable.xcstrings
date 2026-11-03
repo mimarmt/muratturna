@@ -1996,6 +1996,233 @@
     },
     " · ": {
       "shouldTranslate": false
+    },
+    "Natural voice (ElevenLabs)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doğal ses (ElevenLabs)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Natürliche Stimme (ElevenLabs)"
+          }
+        }
+      }
+    },
+    "API key": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API anahtarı"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API-Schlüssel"
+          }
+        }
+      }
+    },
+    "Remove": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaldır"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seç…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswählen …"
+          }
+        }
+      }
+    },
+    "Model": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell"
+          }
+        }
+      }
+    },
+    "Preview natural voice": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doğal sesi dinle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Natürliche Stimme anhören"
+          }
+        }
+      }
+    },
+    "ElevenLabs API key": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs API anahtarı"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs-API-Schlüssel"
+          }
+        }
+      }
+    },
+    "Save key": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtarı kaydet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel sichern"
+          }
+        }
+      }
+    },
+    "Natural voice": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doğal ses"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Natürliche Stimme"
+          }
+        }
+      }
+    },
+    "Only the short spoken title is sent to ElevenLabs, once per note; the audio is stored on your iPhone. ★ marks your cloned voices. Create a key at elevenlabs.io › Developers › API keys.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs'a her not için bir kez yalnızca kısa sesli başlık gönderilir; ses iPhone'unda saklanır. ★ klonladığın sesleri gösterir. Anahtarı elevenlabs.io › Developers › API keys bölümünden oluştur."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An ElevenLabs wird pro Notiz einmal nur der kurze gesprochene Titel gesendet; der Ton wird auf deinem iPhone gespeichert. ★ markiert deine geklonten Stimmen. Schlüssel unter elevenlabs.io › Developers › API keys erstellen."
+          }
+        }
+      }
+    },
+    "Apple voices": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple sesleri"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple-Stimmen"
+          }
+        }
+      }
+    },
+    "Each note is read in its own language. Apple voices are also used when ElevenLabs is off or offline.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her not kendi dilinde okunur. ElevenLabs kapalıyken veya internet yokken Apple sesleri kullanılır."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jede Notiz wird in ihrer Sprache vorgelesen. Apple-Stimmen werden auch genutzt, wenn ElevenLabs aus oder offline ist."
+          }
+        }
+      }
+    },
+    "Only compact voices for %@. Download an Enhanced voice in Settings › Accessibility › Read & Speak › Voices.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ için yalnızca kompakt ses var. Ayarlar › Erişilebilirlik › Oku ve Seslendir › Sesler bölümünden Gelişmiş bir ses indir."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für %@ gibt es nur kompakte Stimmen. Lade unter Einstellungen › Bedienungshilfen › Vorlesen & Sprechen › Stimmen eine erweiterte Stimme."
+          }
+        }
+      }
+    },
+    "Add your ElevenLabs API key first.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önce ElevenLabs API anahtarını ekle."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge zuerst deinen ElevenLabs-API-Schlüssel hinzu."
+          }
+        }
+      }
+    },
+    "%@ ★": {
+      "shouldTranslate": false
     }
   },
   "version": "1.0"
