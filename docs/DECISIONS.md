@@ -22,6 +22,7 @@
 | — | Arayüz dili | İngilizce (ana dil), Türkçe, Almanca; String Catalog ile genişletilebilir |
 | 15 | v1.0 kapsamı | Tam paket: tüm teknolojiler ilk sürümde |
 | 16 | İsim | **Loopnote** (App Store: "Loopnote – Voice Reminders") |
+| 18 | Tasarım yönü | Mimari ve minimal: bol boşluk, ince çizgiler, güçlü tipografi, ışık/gölge vurgusu |
 
 ## Teknoloji
 
@@ -41,7 +42,7 @@
 
 - CI/CD: GitHub Actions (macOS runner, Xcode 27) → otomatik TestFlight
 - Team ID: `RQ82R94TUH`
-- Bundle ID: `com.muratturna.loopnote` (ön ek onay bekliyor)
+- Bundle ID: `com.muratturna.loopnote`
 
 ## Doğrulanacaklar
 
