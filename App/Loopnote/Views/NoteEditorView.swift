@@ -29,6 +29,7 @@ struct NoteEditorView: View {
     @State private var dictation = DictationService()
     @State private var isGeneratingTitle = false
     @State private var isSaving = false
+    @State private var dismissedDetection: Date?
     @FocusState private var textFocused: Bool
 
     enum RepeatMode: String, CaseIterable, Identifiable {
@@ -72,7 +73,7 @@ struct NoteEditorView: View {
     init(note: Note?, startDictation: Bool = false, project: Project? = nil) {
         self.note = note
         self.startDictation = startDictation
-        let schedule = note?.schedule ?? NoteSchedule(start: .now.addingTimeInterval(600), rule: .everyHours(1))
+        let schedule = note?.schedule ?? NoteSchedule(start: .now, rule: .everyHours(1))
         _details = State(initialValue: note?.details ?? "")
         _spokenTitle = State(initialValue: note?.spokenTitle ?? "")
         _isCritical = State(initialValue: note?.isCritical ?? false)
@@ -112,6 +113,7 @@ struct NoteEditorView: View {
         NavigationStack {
             Form {
                 noteSection
+                detectedDateSection
                 spokenTitleSection
                 repeatSection
                 endSection
@@ -129,6 +131,11 @@ struct NoteEditorView: View {
                 }
             }
             .onChange(of: dictation.transcript) { _, text in details = text }
+            .onChange(of: mode) { _, newMode in
+                if newMode == .once && start < .now.addingTimeInterval(60) {
+                    start = .now.addingTimeInterval(3_600)
+                }
+            }
             .onChange(of: dictation.isRecording) { _, recording in
                 if !recording && spokenTitle.isEmpty { Task { await suggestTitle() } }
             }
@@ -227,6 +234,80 @@ struct NoteEditorView: View {
                 WeekdayPicker(selection: $weekdays)
                 timesEditor
             }
+            firstReminderRow
+        }
+    }
+
+    private var previewSchedule: NoteSchedule {
+        NoteSchedule(start: scheduleStart, rule: rule, end: endCondition)
+    }
+
+    @ViewBuilder private var firstReminderRow: some View {
+        if let first = previewSchedule.occurrences(after: .now, limit: 1, calendar: .current).first?.date {
+            let quiet = AppSettings.quietHours
+            if quiet.contains(first, calendar: .current) {
+                let wake = quiet.windowEnd(after: first, calendar: .current)
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("First reminder falls in quiet hours")
+                        Text("It will be read in the morning summary at \(wake.formatted(date: .omitted, time: .shortened)).")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "moon.fill").foregroundStyle(.indigo)
+                }
+            } else {
+                LabeledContent("First reminder") {
+                    Text(first.formatted(.relative(presentation: .named)))
+                        + Text(" · ") + Text(first, format: .dateTime.weekday(.abbreviated).hour().minute())
+                }
+            }
+        }
+    }
+
+    /// A future date/time mentioned in the note ("tomorrow at 11", "yarın saat 11'de").
+    private var detectedDate: Date? {
+        guard !details.isBlank,
+              let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue) else { return nil }
+        let range = NSRange(details.startIndex..., in: details)
+        let date = detector.matches(in: details, options: [], range: range)
+            .compactMap(\.date).first { $0 > .now.addingTimeInterval(60) }
+        return date == dismissedDetection ? nil : date
+    }
+
+    @ViewBuilder private var detectedDateSection: some View {
+        if let date = detectedDate {
+            Section {
+                Label {
+                    Text("Found in your note: \(date.formatted(date: .abbreviated, time: .shortened))")
+                } icon: {
+                    Image(systemName: "calendar.badge.clock").foregroundStyle(Theme.amber)
+                }
+                HStack {
+                    if date.timeIntervalSinceNow > 3_900 {
+                        Button("1 hour before") { applyDetected(date.addingTimeInterval(-3_600)) }
+                            .buttonStyle(.bordered)
+                    }
+                    Button("At that time") { applyDetected(date) }
+                        .buttonStyle(.bordered)
+                    Spacer()
+                    Button { dismissedDetection = date } label: { Image(systemName: "xmark") }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("Dismiss")
+                }
+                .tint(Theme.amber)
+            } footer: {
+                Text("Loopnote can remind you once at this time.")
+            }
+        }
+    }
+
+    private func applyDetected(_ date: Date) {
+        withAnimation {
+            mode = .once
+            start = date
+            dismissedDetection = detectedDate
         }
     }
 
@@ -304,6 +385,13 @@ struct NoteEditorView: View {
         }
     }
 
+    private var scheduleStart: Date {
+        switch mode {
+        case .once, .interval: return start
+        case .daily, .weekly: return note?.schedule.start ?? Calendar.current.startOfDay(for: .now)
+        }
+    }
+
     private var endCondition: EndCondition {
         guard mode != .once else { return .never }
         switch endMode {
@@ -330,13 +418,7 @@ struct NoteEditorView: View {
         if spokenTitle.isBlank { await suggestTitle(force: true) }
         let title = spokenTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let language = LanguageDetector.speechLanguage(for: title.isEmpty ? text : title)
-        let startDate: Date = {
-            switch mode {
-            case .once, .interval: return start
-            case .daily, .weekly: return note?.schedule.start ?? Calendar.current.startOfDay(for: .now)
-            }
-        }()
-        let schedule = NoteSchedule(start: startDate, rule: rule, end: endCondition)
+        let schedule = NoteSchedule(start: scheduleStart, rule: rule, end: endCondition)
         let project = projects.first { $0.id == projectID }
 
         if let note {

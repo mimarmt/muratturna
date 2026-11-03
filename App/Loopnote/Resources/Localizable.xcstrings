@@ -1686,6 +1686,316 @@
     },
     "%lld": {
       "shouldTranslate": false
+    },
+    "Voices": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesler"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stimmen"
+          }
+        }
+      }
+    },
+    "Each note is read in its own language with the voice you choose here.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her not kendi dilinde, burada seçtiğin sesle okunur."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jede Notiz wird in ihrer Sprache mit der hier gewählten Stimme vorgelesen."
+          }
+        }
+      }
+    },
+    "For a more natural sound, download an Enhanced or Premium voice: Settings › Accessibility › Read & Speak › Voices.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daha doğal bir ses için Gelişmiş veya Premium bir ses indir: Ayarlar › Erişilebilirlik › Oku ve Seslendir › Sesler."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für einen natürlicheren Klang lade eine erweiterte oder Premium-Stimme: Einstellungen › Bedienungshilfen › Vorlesen & Sprechen › Stimmen."
+          }
+        }
+      }
+    },
+    "Personal Voice speaks English notes in your own voice. Create it in Settings › Accessibility › Personal Voice and allow apps to request it.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kişisel Ses, İngilizce notları kendi sesinle okur. Ayarlar › Erişilebilirlik › Kişisel Ses bölümünden oluştur ve uygulamaların izin istemesine izin ver."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene Stimme liest englische Notizen mit deiner Stimme. Erstelle sie unter Einstellungen › Bedienungshilfen › Eigene Stimme und erlaube Apps, sie anzufragen."
+          }
+        }
+      }
+    },
+    "Your notes stay on your device. Speech and titles are processed on device.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notların cihazında kalır. Ses ve başlıklar cihaz üzerinde işlenir."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Notizen bleiben auf deinem Gerät. Sprache und Titel werden auf dem Gerät verarbeitet."
+          }
+        }
+      }
+    },
+    "Automatic": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch"
+          }
+        }
+      }
+    },
+    "Personal Voice": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kişisel Ses"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene Stimme"
+          }
+        }
+      }
+    },
+    "Premium": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Premium"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Premium"
+          }
+        }
+      }
+    },
+    "Enhanced": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelişmiş"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweitert"
+          }
+        }
+      }
+    },
+    "Compact": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kompakt"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kompakt"
+          }
+        }
+      }
+    },
+    "First reminder falls in quiet hours": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İlk hatırlatma sessiz saatlere denk geliyor"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die erste Erinnerung fällt in die Ruhezeit"
+          }
+        }
+      }
+    },
+    "It will be read in the morning summary at %@.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@'de sabah özetinde okunacak."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sie wird in der Morgenübersicht um %@ vorgelesen."
+          }
+        }
+      }
+    },
+    "First reminder": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İlk hatırlatma"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erste Erinnerung"
+          }
+        }
+      }
+    },
+    "Found in your note: %@": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notunda bulundu: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In deiner Notiz gefunden: %@"
+          }
+        }
+      }
+    },
+    "1 hour before": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 saat önce"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Stunde vorher"
+          }
+        }
+      }
+    },
+    "At that time": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tam o saatte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu dieser Zeit"
+          }
+        }
+      }
+    },
+    "Dismiss": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausblenden"
+          }
+        }
+      }
+    },
+    "Loopnote can remind you once at this time.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote bu zamanda sana bir kez hatırlatabilir."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote kann dich einmal zu dieser Zeit erinnern."
+          }
+        }
+      }
+    },
+    "now": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "şimdi"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jetzt"
+          }
+        }
+      }
+    },
+    "%@ · %@": {
+      "shouldTranslate": false
+    },
+    " · ": {
+      "shouldTranslate": false
     }
   },
   "version": "1.0"

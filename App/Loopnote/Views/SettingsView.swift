@@ -28,6 +28,24 @@ struct SettingsView: View {
             }
 
             Section {
+                ForEach(VoiceCatalog.languages, id: \.self) { lang in
+                    VoicePickerRow(language: lang)
+                }
+                if VoiceCatalog.languages.contains(where: VoiceCatalog.onlyCompactInstalled) {
+                    Label {
+                        Text("For a more natural sound, download an Enhanced or Premium voice: Settings › Accessibility › Read & Speak › Voices.")
+                            .font(.footnote)
+                    } icon: {
+                        Image(systemName: "sparkles").foregroundStyle(Theme.amber)
+                    }
+                }
+            } header: {
+                Text("Voices")
+            } footer: {
+                Text("Each note is read in its own language with the voice you choose here.")
+            }
+
+            Section {
                 Toggle(isOn: $usePersonalVoice) {
                     Label("Use my Personal Voice", systemImage: "person.wave.2")
                 }
@@ -56,7 +74,7 @@ struct SettingsView: View {
             } header: {
                 Text("Voice")
             } footer: {
-                Text("Create a Personal Voice in Settings › Accessibility › Personal Voice to hear notes in your own voice.")
+                Text("Personal Voice speaks English notes in your own voice. Create it in Settings › Accessibility › Personal Voice and allow apps to request it.")
             }
 
             Section("Notifications") {
@@ -81,7 +99,7 @@ struct SettingsView: View {
                                value: TitleSummarizer.isModelAvailable ? String(localized: "Available")
                                                                         : String(localized: "Not available"))
             } footer: {
-                Text("Your notes stay on your devices and in your iCloud. Speech and titles are processed on device.")
+                Text("Your notes stay on your device. Speech and titles are processed on device.")
             }
         }
         .navigationTitle("Settings")
@@ -119,5 +137,43 @@ extension Bundle {
         let v = infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let b = infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(v) (\(b))"
+    }
+}
+
+/// Picks the voice used for one language, with a quality label and preview.
+private struct VoicePickerRow: View {
+    let language: String
+    @State private var selection: String = ""
+
+    private var voices: [AVSpeechSynthesisVoice] { VoiceCatalog.voices(for: language) }
+    private var languageName: String {
+        Locale.current.localizedString(forIdentifier: language) ?? language
+    }
+
+    var body: some View {
+        HStack {
+            Picker(languageName, selection: $selection) {
+                Text("Automatic").tag("")
+                ForEach(voices, id: \.identifier) { v in
+                    Text("\(v.name) · \(VoiceCatalog.qualityLabel(v))").tag(v.identifier)
+                }
+            }
+            Button {
+                let sample = switch language.prefix(2) {
+                case "tr": "Yarın saat onda belediyeye eksik evrakları götür."
+                case "de": "Morgen um zehn die fehlenden Unterlagen zum Bauamt bringen."
+                default: "Bring the missing documents to the city office tomorrow at ten."
+                }
+                SpeechRenderer.shared.speakNow(sample, language: language)
+            } label: {
+                Image(systemName: "play.circle")
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Preview voice")
+        }
+        .onAppear { selection = AppSettings.voiceIdentifier(for: language) ?? "" }
+        .onChange(of: selection) { _, id in
+            UserDefaults.standard.set(id, forKey: AppSettings.voiceKey(for: language))
+        }
     }
 }

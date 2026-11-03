@@ -168,8 +168,7 @@ struct NoteRow: View {
                     Text(ScheduleText.rule(note.schedule.rule))
                     if let next = note.nextOccurrence() {
                         Text("·")
-                        Text(next, style: .relative)
-                            .monospacedDigit()
+                        NextTimeLabel(date: next)
                     }
                     if note.project?.isMuted == true {
                         Image(systemName: "speaker.slash")
@@ -182,5 +181,25 @@ struct NoteRow: View {
         }
         .padding(.vertical, 8)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// "in 12 min" / "🌙 07:30" — refreshes every 30 seconds instead of ticking seconds.
+struct NextTimeLabel: View {
+    let date: Date
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 30)) { context in
+            let quiet = AppSettings.quietHours
+            if quiet.contains(date, calendar: .current) {
+                let wake = quiet.windowEnd(after: date, calendar: .current)
+                Label(wake.formatted(date: .omitted, time: .shortened), systemImage: "moon.fill")
+                    .labelStyle(.titleAndIcon)
+            } else if date.timeIntervalSince(context.date) < 60 {
+                Text("now")
+            } else {
+                Text(date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated)))
+            }
+        }
     }
 }

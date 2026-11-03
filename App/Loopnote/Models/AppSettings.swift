@@ -32,5 +32,11 @@ enum AppSettings {
     }
 
     static var usePersonalVoice: Bool { d.bool(forKey: Key.usePersonalVoice) }
+
+    static func voiceKey(for language: String) -> String { "voice.id." + language.prefix(2) }
+    static func voiceIdentifier(for language: String) -> String? {
+        let v = d.string(forKey: voiceKey(for: language))
+        return (v?.isEmpty ?? true) ? nil : v
+    }
     static var speechRate: Float { Float(d.double(forKey: Key.speechRate)) }
 }
