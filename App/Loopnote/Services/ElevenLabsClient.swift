@@ -41,6 +41,54 @@ enum ElevenLabsClient {
 
     static var apiKey: String? { Keychain.get(keyAccount) }
 
+    /// A voice from the public ElevenLabs Voice Library.
+    struct SharedVoice: Decodable, Identifiable, Hashable, Sendable {
+        let public_owner_id: String
+        let voice_id: String
+        let name: String
+        let gender: String?
+        let age: String?
+        let accent: String?
+        let descriptive: String?
+        let use_case: String?
+        let preview_url: String?
+        var id: String { voice_id }
+    }
+
+    /// Native speakers of a language from the Voice Library, most used first.
+    static func sharedVoices(language: String) async throws -> [SharedVoice] {
+        guard let key = apiKey else { throw Failure.noKey }
+        var comps = URLComponents(url: base.appendingPathComponent("shared-voices"), resolvingAgainstBaseURL: false)!
+        comps.queryItems = [URLQueryItem(name: "language", value: language),
+                            URLQueryItem(name: "page_size", value: "40"),
+                            URLQueryItem(name: "sort", value: "usage_character_count_1y")]
+        var req = URLRequest(url: comps.url!)
+        req.setValue(key, forHTTPHeaderField: "xi-api-key")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        try check(resp, data)
+        struct List: Decodable { let voices: [SharedVoice] }
+        return try JSONDecoder().decode(List.self, from: data).voices
+    }
+
+    /// Adds a Voice Library voice to the user's account and returns its new voice ID.
+    static func addSharedVoice(_ v: SharedVoice) async throws -> String {
+        guard let key = apiKey else { throw Failure.noKey }
+        var req = URLRequest(url: base.appendingPathComponent("voices/add/\(v.public_owner_id)/\(v.voice_id)"))
+        req.httpMethod = "POST"
+        req.setValue(key, forHTTPHeaderField: "xi-api-key")
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["new_name": v.name])
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        try check(resp, data)
+        struct Added: Decodable { let voice_id: String }
+        return try JSONDecoder().decode(Added.self, from: data).voice_id
+    }
+
+    /// "Daniel - Steady Broadcaster" → "Daniel"
+    static func shortName(_ name: String) -> String {
+        name.components(separatedBy: " - ").first?.trimmingCharacters(in: .whitespaces) ?? name
+    }
+
     static func voices() async throws -> [Voice] {
         guard let key = apiKey else { throw Failure.noKey }
         var req = URLRequest(url: base.appendingPathComponent("voices"))

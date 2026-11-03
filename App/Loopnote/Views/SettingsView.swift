@@ -155,15 +155,14 @@ private struct VoicePickerRow: View {
 
     var body: some View {
         HStack {
-            Text(Self.shortName(language))
-            Spacer()
             Picker(Self.shortName(language), selection: $selection) {
                 Text("Automatic").tag("")
                 ForEach(voices, id: \.identifier) { v in
-                    Text("\(v.name) · \(VoiceCatalog.qualityLabel(v))").tag(v.identifier)
+                    Text("\(v.name.replacingOccurrences(of: " (Enhanced)", with: "").replacingOccurrences(of: " (Premium)", with: "")) · \(VoiceCatalog.qualityLabel(v))")
+                        .tag(v.identifier)
                 }
             }
-            .labelsHidden()
+            .pickerStyle(.menu)
             Button {
                 let sample = switch language.prefix(2) {
                 case "tr": "Yarın saat onda belediyeye eksik evrakları götür."
@@ -217,8 +216,20 @@ private struct ElevenLabsSection: View {
                             Text(voiceName.isEmpty ? voiceID : voiceName).tag(voiceID)
                         }
                         ForEach(voices) { v in
-                            Text(v.category == "cloned" ? "\(v.name) ★" : v.name).tag(v.voice_id)
+                            let short = ElevenLabsClient.shortName(v.name)
+                            Text(v.category == "cloned" ? "\(short) ★" : short).tag(v.voice_id)
                         }
+                    }
+                    NavigationLink {
+                        SharedVoicesView(language: "tr") { newID, name in
+                            Task {
+                                await loadVoices()
+                                voiceID = newID
+                                voiceName = name
+                            }
+                        }
+                    } label: {
+                        Label("Find a Turkish voice", systemImage: "magnifyingglass")
                     }
                     Picker("Model", selection: $model) {
                         ForEach(ElevenLabsClient.Model.allCases) { Text($0.label).tag($0.rawValue) }
@@ -292,6 +303,104 @@ private struct ElevenLabsSection: View {
                 "Yarın saat onda belediyeye eksik evrakları götürmeyi unutma.",
                 voiceID: voiceID, model: model)
             error = nil
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+}
+
+/// Browses native-speaker voices in the ElevenLabs Voice Library and adds one to the account.
+private struct SharedVoicesView: View {
+    let language: String
+    var onAdded: (String, String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var voices: [ElevenLabsClient.SharedVoice] = []
+    @State private var loading = true
+    @State private var adding: String?
+    @State private var error: String?
+    @State private var player: AVPlayer?
+    @State private var playing: String?
+
+    var body: some View {
+        List {
+            if let error {
+                Text(error).font(.footnote).foregroundStyle(.red)
+            }
+            ForEach(voices) { v in
+                HStack(spacing: 14) {
+                    Button {
+                        play(v)
+                    } label: {
+                        Image(systemName: playing == v.voice_id ? "stop.circle.fill" : "play.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(Theme.amber)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(v.preview_url == nil)
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(ElevenLabsClient.shortName(v.name)).font(Theme.title(.body))
+                        Text(details(v)).font(.footnote).foregroundStyle(.secondary).lineLimit(2)
+                    }
+                    Spacer()
+                    if adding == v.voice_id {
+                        ProgressView()
+                    } else {
+                        Button("Add") { Task { await add(v) } }
+                            .buttonStyle(.borderedProminent)
+                            .tint(Theme.amber)
+                            .foregroundStyle(.black)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        }
+        .overlay { if loading { ProgressView() } }
+        .navigationTitle("Turkish voices")
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await load() }
+        .onDisappear { player?.pause() }
+    }
+
+    private func details(_ v: ElevenLabsClient.SharedVoice) -> String {
+        [v.gender, v.age, v.descriptive, v.use_case]
+            .compactMap { $0?.replacingOccurrences(of: "_", with: " ") }
+            .filter { !$0.isEmpty }
+            .joined(separator: " · ")
+    }
+
+    private func load() async {
+        loading = true
+        defer { loading = false }
+        do {
+            voices = try await ElevenLabsClient.sharedVoices(language: language)
+            error = voices.isEmpty ? String(localized: "No voices found.") : nil
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    private func play(_ v: ElevenLabsClient.SharedVoice) {
+        if playing == v.voice_id {
+            player?.pause(); playing = nil; return
+        }
+        guard let s = v.preview_url, let url = URL(string: s) else { return }
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio)
+        try? AVAudioSession.sharedInstance().setActive(true)
+        player = AVPlayer(url: url)
+        player?.play()
+        playing = v.voice_id
+    }
+
+    private func add(_ v: ElevenLabsClient.SharedVoice) async {
+        adding = v.voice_id
+        defer { adding = nil }
+        do {
+            let id = try await ElevenLabsClient.addSharedVoice(v)
+            player?.pause()
+            onAdded(id, ElevenLabsClient.shortName(v.name))
+            dismiss()
         } catch {
             self.error = error.localizedDescription
         }

@@ -2255,6 +2255,54 @@
           }
         }
       }
+    },
+    "Find a Turkish voice": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🇹🇷 Türkçe ses bul"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Türkische Stimme finden"
+          }
+        }
+      }
+    },
+    "Turkish voices": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Türkçe sesler"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Türkische Stimmen"
+          }
+        }
+      }
+    },
+    "No voices found.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses bulunamadı."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Stimmen gefunden."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
