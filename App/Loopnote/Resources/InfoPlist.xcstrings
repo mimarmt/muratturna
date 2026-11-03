@@ -15,6 +15,12 @@
             "state": "translated",
             "value": "Loopnote"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote"
+          }
         }
       }
     },
@@ -32,6 +38,12 @@
             "state": "translated",
             "value": "Loopnote verwendet das Mikrofon, damit du Notizen diktieren kannst."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote uses the microphone so you can dictate notes."
+          }
         }
       }
     },
@@ -48,6 +60,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Loopnote wandelt deine Stimme auf dem Gerät in Text um."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote turns your voice into text on your device."
           }
         }
       }
