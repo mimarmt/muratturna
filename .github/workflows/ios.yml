@@ -72,7 +72,7 @@ jobs:
           pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
           python3 ci/install-asc-key.py
           mkdir -p ~/.appstoreconnect/private_keys
-          cp "$ASC_KEY_PATH" ~/.appstoreconnect/private_keys/
+          cp "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8" ~/.appstoreconnect/private_keys/
       - name: Create signing assets
         run: python3 ci/asc_signing.py setup
       - name: Prepare keychain
