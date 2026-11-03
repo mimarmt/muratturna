@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2a2d"/><stop offset="1" stop-color="#0b0b0c"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD08A"/><stop offset="0.55" stop-color="#FFA53D"/><stop offset="1" stop-color="#E8730F"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.45"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="28" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFA53D" stop-opacity="0.28"/><stop offset="1" stop-color="#FFA53D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="330" fill="url(#halo)"/>
+  <!-- loop ring with a gap and arrow tip (repeat) -->
+  <path d="M 742 282 A 325 325 0 1 0 837 512" fill="none" stroke="url(#ring)" stroke-width="34" stroke-linecap="round"/>
+  <path d="M 700 262 L 762 268 L 752 330" fill="none" stroke="#ffffff" stroke-opacity="0.95" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- waveform -->
+  <g filter="url(#glow)" fill="url(#amber)">
+    <rect x="322" y="462" width="44" height="100" rx="22"/>
+    <rect x="394" y="392" width="44" height="240" rx="22"/>
+    <rect x="466" y="322" width="44" height="380" rx="22"/>
+    <rect x="538" y="372" width="44" height="280" rx="22"/>
+    <rect x="610" y="432" width="44" height="160" rx="22"/>
+    <rect x="682" y="477" width="44" height="70" rx="22"/>
+  </g>
+</svg>
