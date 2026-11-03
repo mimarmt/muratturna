@@ -23,6 +23,7 @@
 | 15 | v1.0 kapsamı | Tam paket: tüm teknolojiler ilk sürümde |
 | 16 | İsim | **Loopnote** (App Store: "Loopnote – Voice Reminders") |
 | 18 | Tasarım yönü | Mimari ve minimal: bol boşluk, ince çizgiler, güçlü tipografi, ışık/gölge vurgusu |
+| 19 | Renk ve tipografi | Monokrom + tek vurgu rengi (sıcak amber); başlıklar New York (serif), metin SF Pro; açık/koyu mod sistemi izler |
 
 ## Teknoloji
 
