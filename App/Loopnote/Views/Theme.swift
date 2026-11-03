@@ -12,7 +12,7 @@ enum Theme {
         .system(style, design: .serif).weight(.semibold)
     }
 
-    static func applyNavigationBarAppearance() {
+    @MainActor static func applyNavigationBarAppearance() {
         func serif(_ size: CGFloat, _ weight: UIFont.Weight) -> UIFont {
             let base = UIFont.systemFont(ofSize: size, weight: weight)
             guard let d = base.fontDescriptor.withDesign(.serif) else { return base }

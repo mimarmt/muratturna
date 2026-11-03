@@ -5,7 +5,7 @@ struct ArchiveView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @Query(filter: #Predicate<Note> { $0.completedAt != nil },
-           sort: \Note.completedAt, order: .reverse) private var notes: [Note]
+           sort: [SortDescriptor(\Note.completedAt, order: .reverse)]) private var notes: [Note]
 
     var body: some View {
         List {

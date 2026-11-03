@@ -83,6 +83,7 @@ final class DictationService {
                                                feeding request: SFSpeechAudioBufferRecognitionRequest) throws {
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
+        nonisolated(unsafe) let request = request
         input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
             request.append(buffer)
         }
@@ -91,7 +92,7 @@ final class DictationService {
     nonisolated private static func recognize(
         with recognizer: SFSpeechRecognizer,
         request: SFSpeechAudioBufferRecognitionRequest,
-        update: @escaping @MainActor (String?, Bool) -> Void
+        update: @escaping @MainActor @Sendable (String?, Bool) -> Void
     ) -> SFSpeechRecognitionTask {
         recognizer.recognitionTask(with: request) { result, error in
             let text = result?.bestTranscription.formattedString

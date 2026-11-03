@@ -156,7 +156,7 @@ final class AlertScheduler {
         var note: Note?
         if let noteID {
             let target = noteID
-            note = try? context.fetch(FetchDescriptor<Note>(predicate: #Predicate { $0.id == target })).first
+            note = try? context.fetch(FetchDescriptor<Note>(predicate: #Predicate<Note> { $0.id == target })).first
         }
         let now = Date.now
 
