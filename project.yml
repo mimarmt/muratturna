@@ -29,17 +29,6 @@ targets:
       - path: App/Loopnote
     dependencies:
       - package: LoopnoteCore
-    entitlements:
-      path: App/Loopnote/Loopnote.entitlements
-      properties:
-        com.apple.developer.icloud-container-identifiers:
-          - iCloud.com.muratturna.loopnote
-        com.apple.developer.icloud-services:
-          - CloudKit
-        aps-environment: development
-        com.apple.developer.usernotifications.time-sensitive: true
-        com.apple.security.application-groups:
-          - group.com.muratturna.loopnote
     info:
       path: App/Loopnote/Info.plist
       properties:
@@ -54,13 +43,17 @@ targets:
         UISupportedInterfaceOrientations~ipad:
           [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown,
            UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
-        UIBackgroundModes: [fetch, remote-notification]
+        UIBackgroundModes: [fetch]
         BGTaskSchedulerPermittedIdentifiers: [com.muratturna.loopnote.replan]
         NSMicrophoneUsageDescription: Loopnote uses the microphone so you can dictate notes.
         NSSpeechRecognitionUsageDescription: Loopnote turns your voice into text on your device.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.muratturna.loopnote
+        # CI overrides these for App Store signing; local builds stay automatic.
+        CODE_SIGN_STYLE: "$(LN_SIGN_STYLE:default=Automatic)"
+        CODE_SIGN_IDENTITY: "$(LN_SIGN_IDENTITY:default=Apple Development)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(LN_PROFILE)"
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

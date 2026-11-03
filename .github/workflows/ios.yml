@@ -58,6 +58,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.testflight
     runs-on: macos-26
     timeout-minutes: 60
+    env:
+      BUNDLE_ID: com.muratturna.loopnote
     steps:
       - uses: actions/checkout@v4
       - run: ci/select-xcode.sh
@@ -69,6 +71,23 @@ jobs:
         run: |
           pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
           python3 ci/install-asc-key.py
+          mkdir -p ~/.appstoreconnect/private_keys
+          cp "$ASC_KEY_PATH" ~/.appstoreconnect/private_keys/
+      - name: Create signing assets
+        run: python3 ci/asc_signing.py setup
+      - name: Prepare keychain
+        run: |
+          KC="$RUNNER_TEMP/build.keychain-db"; KCPW=$(uuidgen)
+          echo "::add-mask::$KCPW"
+          security create-keychain -p "$KCPW" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KCPW" "$KC"
+          curl -sSLo "$RUNNER_TEMP/wwdr.cer" https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          security import "$RUNNER_TEMP/wwdr.cer" -k "$KC" -T /usr/bin/codesign || true
+          security import "$P12_PATH" -k "$KC" -P "$P12_PASSWORD" -f pkcs12 -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KCPW" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          security find-identity -v -p codesigning "$KC"
       - name: Archive
         run: |
           set -o pipefail
@@ -76,22 +95,39 @@ jobs:
             -project Loopnote.xcodeproj -scheme Loopnote -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Loopnote.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            LN_SIGN_STYLE=Manual LN_SIGN_IDENTITY="Apple Distribution" LN_PROFILE="$PROFILE_NAME" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} | xcbeautify --renderer github-actions
-      - name: Export and upload
+      - name: Export IPA
         run: |
           set -o pipefail
-          xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/Loopnote.xcarchive" \
-            -exportOptionsPlist ci/ExportOptions.plist \
-            -exportPath "$RUNNER_TEMP/export" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" | xcbeautify --renderer github-actions
-      - name: Remove API key
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>export</string>
+            <key>teamID</key><string>RQ82R94TUH</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>provisioningProfiles</key><dict><key>${BUNDLE_ID}</key><string>${PROFILE_NAME}</string></dict>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Loopnote.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" | xcbeautify --renderer github-actions
+          ls -la "$RUNNER_TEMP/export"
+      - name: Upload to App Store Connect
+        run: |
+          if [ "$APP_RECORD_EXISTS" != "yes" ]; then
+            echo "::warning::The app record for $BUNDLE_ID does not exist in App Store Connect yet. Create it (Apps > + > New App), then run this workflow again."
+            exit 0
+          fi
+          xcrun altool --upload-app -f "$RUNNER_TEMP"/export/*.ipa -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" --output-format normal
+      - name: Clean up signing assets
         if: always()
-        run: rm -rf "$RUNNER_TEMP/keys"
+        run: |
+          python3 ci/asc_signing.py cleanup || true
+          security delete-keychain "$RUNNER_TEMP/build.keychain-db" || true
+          rm -rf "$RUNNER_TEMP/keys" ~/.appstoreconnect "$RUNNER_TEMP/dist.p12"
