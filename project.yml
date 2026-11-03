@@ -33,6 +33,8 @@ targets:
       path: App/Loopnote/Info.plist
       properties:
         CFBundleDisplayName: Loopnote
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleLocalizations: [en, tr, de]
         ITSAppUsesNonExemptEncryption: false
         LSApplicationCategoryType: public.app-category.productivity
