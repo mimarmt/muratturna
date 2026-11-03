@@ -1,0 +1,77 @@
+name: Loopnote
+options:
+  bundleIdPrefix: com.muratturna
+  deploymentTarget:
+    iOS: "26.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: RQ82R94TUH
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+packages:
+  LoopnoteCore:
+    path: Packages/LoopnoteCore
+
+targets:
+  Loopnote:
+    type: application
+    platform: iOS
+    sources:
+      - path: App/Loopnote
+    dependencies:
+      - package: LoopnoteCore
+    entitlements:
+      path: App/Loopnote/Loopnote.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.muratturna.loopnote
+        com.apple.developer.icloud-services:
+          - CloudKit
+        aps-environment: development
+        com.apple.developer.usernotifications.time-sensitive: true
+        com.apple.security.application-groups:
+          - group.com.muratturna.loopnote
+    info:
+      path: App/Loopnote/Info.plist
+      properties:
+        CFBundleDisplayName: Loopnote
+        CFBundleLocalizations: [en, tr, de]
+        ITSAppUsesNonExemptEncryption: false
+        LSApplicationCategoryType: public.app-category.productivity
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad:
+          [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown,
+           UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIBackgroundModes: [fetch, remote-notification]
+        BGTaskSchedulerPermittedIdentifiers: [com.muratturna.loopnote.replan]
+        NSMicrophoneUsageDescription: Loopnote uses the microphone so you can dictate notes.
+        NSSpeechRecognitionUsageDescription: Loopnote turns your voice into text on your device.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.muratturna.loopnote
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        INFOPLIST_KEY_CFBundleDisplayName: Loopnote
+
+schemes:
+  Loopnote:
+    build:
+      targets:
+        Loopnote: all
+    run:
+      config: Debug
+    archive:
+      config: Release

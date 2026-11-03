@@ -1,0 +1,96 @@
+name: iOS
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      testflight:
+        description: "Upload a build to TestFlight"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ASC_KEY_ID: KTN24G5LBZ
+  ASC_ISSUER_ID: 55f74e1d-057f-4e6b-ac66-a8b5cac5ea0a
+
+jobs:
+  core-tests:
+    name: Core tests
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/select-xcode.sh
+      - name: swift test
+        working-directory: Packages/LoopnoteCore
+        run: swift test
+
+  build:
+    name: Build app (simulator)
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/select-xcode.sh
+      - run: brew install xcodegen
+      - run: xcodegen generate
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Loopnote.xcodeproj -scheme Loopnote \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO | tee build.log | xcbeautify --renderer github-actions || \
+          (grep -E "error:" build.log | head -50; exit 1)
+
+  testflight:
+    name: Upload to TestFlight
+    needs: [core-tests, build]
+    if: github.event_name == 'workflow_dispatch' && inputs.testflight
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/select-xcode.sh
+      - run: brew install xcodegen
+      - run: xcodegen generate
+      - name: Install API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8"
+          echo "ASC_KEY_PATH=$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8" >> "$GITHUB_ENV"
+      - name: Archive
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project Loopnote.xcodeproj -scheme Loopnote -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Loopnote.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} | xcbeautify --renderer github-actions
+      - name: Export and upload
+        run: |
+          set -o pipefail
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Loopnote.xcarchive" \
+            -exportOptionsPlist ci/ExportOptions.plist \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" | xcbeautify --renderer github-actions
+      - name: Remove API key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
