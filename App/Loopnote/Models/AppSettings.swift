@@ -3,7 +3,7 @@ import LoopnoteCore
 
 /// User preferences stored in UserDefaults (per device).
 enum AppSettings {
-    private static let d = UserDefaults.standard
+    private static var d: UserDefaults { .standard }
 
     enum Key {
         static let quietEnabled = "quiet.enabled"
