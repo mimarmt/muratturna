@@ -63,13 +63,12 @@ jobs:
       - run: ci/select-xcode.sh
       - run: brew install xcodegen
       - run: xcodegen generate
-      - name: Install API key
+      - name: Install and verify API key
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
-          mkdir -p "$RUNNER_TEMP/keys"
-          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8"
-          echo "ASC_KEY_PATH=$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8" >> "$GITHUB_ENV"
+          pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
+          python3 ci/install-asc-key.py
       - name: Archive
         run: |
           set -o pipefail
