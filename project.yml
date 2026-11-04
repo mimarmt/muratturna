@@ -49,6 +49,7 @@ targets:
         BGTaskSchedulerPermittedIdentifiers: [com.muratturna.loopnote.replan]
         NSMicrophoneUsageDescription: Loopnote uses the microphone so you can dictate notes.
         NSSpeechRecognitionUsageDescription: Loopnote turns your voice into text on your device.
+        NSCameraUsageDescription: Loopnote uses the camera so you can add a photo to a note.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.muratturna.loopnote

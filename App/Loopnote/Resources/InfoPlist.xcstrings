@@ -69,6 +69,29 @@
           }
         }
       }
+    },
+    "NSCameraUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote uses the camera so you can add a photo to a note."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote, notlara fotoğraf ekleyebilmen için kamerayı kullanır."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote verwendet die Kamera, damit du Notizen ein Foto hinzufügen kannst."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

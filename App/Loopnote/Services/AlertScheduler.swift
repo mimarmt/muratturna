@@ -113,6 +113,10 @@ final class AlertScheduler {
                 content.threadIdentifier = note.project?.id.uuidString ?? "inbox"
                 content.userInfo = ["noteID": id.uuidString]
                 content.interruptionLevel = critical ? .timeSensitive : .active
+                if let photo = note.photoFileName, let url = PhotoStore.attachmentCopy(photo),
+                   let attachment = try? UNNotificationAttachment(identifier: "photo", url: url) {
+                    content.attachments = [attachment]
+                }
                 content.relevanceScore = critical ? 1 : 0.5
 
             case .digest(let ids):

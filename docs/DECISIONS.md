@@ -32,6 +32,7 @@
 | 27 | Toplantı başlatma | Ana ekranda Toplantı butonu + Action Button + Kontrol Merkezi + Apple Watch |
 | 28 | Toplantı çıktısı | Tam tutanak: özet, kararlar, aksiyonlar (Loopnote hatırlatmasına dönüşür), konuşmacı ayrımlı metin, PDF; WhatsApp/Mail/Kopyala paylaşım |
 | 29 | Toplantı yapay zekâ işleme | Apple Private Cloud Compute (iOS 27), yedek cihaz içi parça parça özet; Claude sonradan Pro Plus |
+| 31 | Yol haritası | A: Fotoğraf → Konum → AlarmKit · B: Widget, Kontrol Merkezi, Live Activities · C: Konuşmacı ayrımı, Watch · D: iCloud, Pro, TipKit, veri güvenliği · E: App Store |
 | 21 | Uygulama ikonu | D · Cam Küre: Liquid Glass küre, amber ses dalgası, yayılan halkalar (`design/icons/final/`) |
 
 ## Teknoloji

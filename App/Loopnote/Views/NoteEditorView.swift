@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftData
 import SwiftUI
 import LoopnoteCore
@@ -25,6 +26,13 @@ struct NoteEditorView: View {
     @State private var endMode: EndMode
     @State private var untilDate: Date
     @State private var count: Int
+
+    @State private var photoName: String?
+    @State private var originalPhotoName: String?
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var showCamera = false
+    @State private var photoText = ""
+    @State private var readingPhoto = false
 
     @State private var dictation = DictationService()
     @State private var isGeneratingTitle = false
@@ -107,12 +115,15 @@ struct NoteEditorView: View {
         _endMode = State(initialValue: endMode)
         _untilDate = State(initialValue: until)
         _count = State(initialValue: count)
+        _photoName = State(initialValue: note?.photoFileName)
+        _originalPhotoName = State(initialValue: note?.photoFileName)
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 noteSection
+                photoSection
                 detectedDateSection
                 spokenTitleSection
                 repeatSection
@@ -174,6 +185,89 @@ struct NoteEditorView: View {
             if let error = dictation.errorMessage {
                 Text(error).font(.footnote).foregroundStyle(.red)
             }
+        }
+    }
+
+    // MARK: Photo
+
+    @ViewBuilder private var photoSection: some View {
+        Section {
+            if let name = photoName, let image = PhotoStore.image(name) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 260)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
+                    .overlay(alignment: .topTrailing) {
+                        Button {
+                            withAnimation { photoName = nil; photoText = "" }
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title2)
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.white, .black.opacity(0.5))
+                        }
+                        .padding(14)
+                        .accessibilityLabel("Remove photo")
+                    }
+                if readingPhoto {
+                    HStack { ProgressView(); Text("Reading the text in the photo…").foregroundStyle(.secondary) }
+                } else if !photoText.isBlank && !details.contains(photoText) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Text in the photo").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                        Text(photoText).font(.footnote).lineLimit(4)
+                        Button {
+                            details = details.isBlank ? photoText : details + "\n" + photoText
+                            Task { await suggestTitle(force: spokenTitle.isBlank) }
+                        } label: {
+                            Label("Add to note", systemImage: "text.badge.plus")
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(Theme.amber)
+                    }
+                }
+            } else {
+                HStack {
+                    Button { showCamera = true } label: {
+                        Label("Take photo", systemImage: "camera")
+                    }
+                    Spacer()
+                    PhotosPicker(selection: $pickerItem, matching: .images) {
+                        Label("Choose photo", systemImage: "photo.on.rectangle")
+                    }
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(Theme.amber)
+            }
+        } header: {
+            Text("Photo")
+        }
+        .sheet(isPresented: $showCamera) {
+            CameraPicker { image in Task { await attach(image) } }
+                .ignoresSafeArea()
+        }
+        .onChange(of: pickerItem) { _, item in
+            guard let item else { return }
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                    await attach(image)
+                }
+                pickerItem = nil
+            }
+        }
+    }
+
+    private func attach(_ image: UIImage) async {
+        if let old = photoName, old != originalPhotoName { PhotoStore.delete(old) }
+        withAnimation { photoName = PhotoStore.save(image) }
+        readingPhoto = true
+        photoText = await PhotoStore.recognizeText(in: image)
+        readingPhoto = false
+        // A photo of a document with no typed note: use its text directly.
+        if details.isBlank && !photoText.isBlank {
+            details = photoText
+            await suggestTitle(force: true)
         }
     }
 
@@ -369,7 +463,8 @@ struct NoteEditorView: View {
     // MARK: Logic
 
     private var canSave: Bool {
-        !details.isBlank && rule.isValid && !(mode == .weekly && weekdays.isEmpty)
+        (!details.isBlank || (photoName != nil && !spokenTitle.isBlank))
+            && rule.isValid && !(mode == .weekly && weekdays.isEmpty)
     }
 
     private var rule: RepeatRule {
@@ -414,7 +509,7 @@ struct NoteEditorView: View {
     private func save() async {
         isSaving = true
         dictation.stop()
-        let text = details.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = (details.isBlank ? spokenTitle : details).trimmingCharacters(in: .whitespacesAndNewlines)
         if spokenTitle.isBlank { await suggestTitle(force: true) }
         let title = spokenTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let language = LanguageDetector.speechLanguage(for: title.isEmpty ? text : title)
@@ -429,9 +524,13 @@ struct NoteEditorView: View {
             note.project = project
             note.schedule = schedule
             note.snoozedUntil = nil
+            if note.photoFileName != photoName { PhotoStore.delete(note.photoFileName) }
+            note.photoFileName = photoName
         } else {
-            context.insert(Note(details: text, spokenTitle: title, schedule: schedule,
-                                languageCode: language, isCritical: isCritical, project: project))
+            let new = Note(details: text, spokenTitle: title, schedule: schedule,
+                           languageCode: language, isCritical: isCritical, project: project)
+            new.photoFileName = photoName
+            context.insert(new)
         }
         try? context.save()
         await AlertScheduler.shared.reschedule()

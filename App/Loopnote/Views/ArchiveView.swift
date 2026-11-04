@@ -26,6 +26,7 @@ struct ArchiveView: View {
                 }
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
+                        PhotoStore.delete(note.photoFileName)
                         context.delete(note)
                         commit()
                     } label: { Label("Delete", systemImage: "trash") }

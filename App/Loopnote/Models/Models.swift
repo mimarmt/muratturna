@@ -38,6 +38,8 @@ final class Note {
     var isCritical: Bool = false
     var completedAt: Date?
     var snoozedUntil: Date?
+    /// JPEG in Documents/Photos shown in the editor and as the notification thumbnail.
+    var photoFileName: String?
     var project: Project?
 
     init(details: String, spokenTitle: String, schedule: NoteSchedule,

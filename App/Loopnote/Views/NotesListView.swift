@@ -165,6 +165,7 @@ struct NotesListView: View {
     }
 
     private func delete(_ note: Note) {
+        PhotoStore.delete(note.photoFileName)
         withAnimation { context.delete(note) }
         commit()
     }
@@ -219,6 +220,15 @@ struct NoteRow: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+            }
+            if let name = note.photoFileName, let image = PhotoStore.thumbnail(name) {
+                Spacer(minLength: 0)
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 52, height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .accessibilityLabel("Photo")
             }
         }
         .padding(.vertical, 8)
