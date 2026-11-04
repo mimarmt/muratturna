@@ -76,10 +76,8 @@ final class AlertScheduler {
         let now = Date.now
         let notes = (try? context.fetch(FetchDescriptor<Note>())) ?? []
 
-        // Notes whose end date / count has passed go to the archive on their own.
-        for note in notes where !note.isCompleted && note.hasEnded(at: now) {
-            note.completedAt = now
-        }
+        // Notes whose schedule ran out are NOT archived automatically: they stay in the list
+        // until the user marks them done, and the morning follow-up mentions them.
         for note in notes where (note.snoozedUntil ?? .distantFuture) < now {
             note.snoozedUntil = nil
         }
@@ -90,6 +88,13 @@ final class AlertScheduler {
 
         center.removeAllPendingNotificationRequests()
         var usedSounds = Set<String>()
+
+        let awaiting = notes.filter { $0.isAwaitingConfirmation && !($0.project?.isMuted ?? false) }
+        let morning = Self.nextMorning(after: now, quiet: AppSettings.quietHours)
+        let awaitingTitles = awaiting.prefix(5).map(\.textToSpeak)
+        let followUpSpoken = String(localized: "\(awaiting.count) notes are still waiting to be marked done.")
+            + " " + awaitingTitles.joined(separator: ". ")
+        var followUpMerged = false
 
         for alert in plan.alerts {
             let content = UNMutableNotificationContent()
@@ -119,8 +124,15 @@ final class AlertScheduler {
                 content.body = titles.map { "• " + $0 }.joined(separator: "\n")
                 content.categoryIdentifier = Self.digestCategory
                 content.threadIdentifier = "digest"
-                spoken = String(localized: "\(items.count) notes waited for you overnight.") + " "
+                var said = String(localized: "\(items.count) notes waited for you overnight.") + " "
                     + titles.joined(separator: ". ")
+                if !awaiting.isEmpty && abs(alert.date.timeIntervalSince(morning)) < 60 {
+                    content.body += "\n\n" + String(localized: "Not done yet:") + "\n"
+                        + awaitingTitles.map { "○ " + $0 }.joined(separator: "\n")
+                    said += ". " + followUpSpoken
+                    followUpMerged = true
+                }
+                spoken = said
             }
 
             if let sound = await SpeechRenderer.shared.soundFile(for: spoken, language: language) {
@@ -138,8 +150,37 @@ final class AlertScheduler {
             try? await center.add(request)
         }
 
+        // Morning follow-up for notes that spoke but were never marked done.
+        if !awaiting.isEmpty && !followUpMerged {
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "Not done yet")
+            content.body = awaitingTitles.map { "○ " + $0 }.joined(separator: "\n")
+            content.categoryIdentifier = Self.digestCategory
+            content.threadIdentifier = "digest"
+            if let sound = await SpeechRenderer.shared.soundFile(for: followUpSpoken,
+                                                                 language: LanguageDetector.fallback) {
+                content.sound = UNNotificationSound(named: UNNotificationSoundName(sound))
+                usedSounds.insert(sound)
+            } else {
+                content.sound = .default
+            }
+            let parts = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: morning)
+            try? await center.add(UNNotificationRequest(
+                identifier: "followup.\(Int(morning.timeIntervalSince1970))", content: content,
+                trigger: UNCalendarNotificationTrigger(dateMatching: parts, repeats: false)))
+        }
+
         SpeechRenderer.shared.pruneSounds(keeping: usedSounds)
         scheduleBackgroundRefresh(horizon: plan.horizon)
+    }
+
+    /// When quiet hours end next (or 09:00 when quiet hours are off).
+    static func nextMorning(after date: Date, quiet: QuietHours, calendar: Calendar = .current) -> Date {
+        let wake = quiet.isEnabled ? quiet.end : TimeOfDay(hour: 9, minute: 0)
+        let today = wake.on(date, calendar: calendar)
+        if today > date { return today }
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: date) ?? date
+        return wake.on(tomorrow, calendar: calendar)
     }
 
     private func scheduleBackgroundRefresh(horizon: Date?) {

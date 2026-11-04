@@ -24,9 +24,41 @@ struct NotesListView: View {
             .sorted { ($0.nextOccurrence() ?? .distantFuture) < ($1.nextOccurrence() ?? .distantFuture) }
     }
 
+    /// Spoke already, schedule ran out, not marked done yet.
+    private var awaiting: [Note] { visible.filter(\.isAwaitingConfirmation) }
+    private var upcoming: [Note] { visible.filter { !$0.isAwaitingConfirmation } }
+
     var body: some View {
         List {
-            ForEach(visible) { note in
+            if !awaiting.isEmpty {
+                Section {
+                    ForEach(awaiting) { note in
+                        HStack(spacing: 12) {
+                            NoteRow(note: note)
+                            Button { complete(note) } label: {
+                                Image(systemName: "checkmark.circle")
+                                    .font(.title2)
+                                    .foregroundStyle(Theme.amber)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel("Done")
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture { editing = note }
+                        .swipeActions(edge: .leading) {
+                            Button { complete(note) } label: { Label("Done", systemImage: "checkmark") }
+                                .tint(.green)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) { delete(note) } label: { Label("Delete", systemImage: "trash") }
+                        }
+                    }
+                } header: {
+                    Label("Said · not done yet", systemImage: "checkmark.bubble")
+                        .foregroundStyle(Theme.amber)
+                }
+            }
+            ForEach(upcoming) { note in
                 NoteRow(note: note)
                     .contentShape(Rectangle())
                     .onTapGesture { editing = note }
@@ -176,6 +208,9 @@ struct NoteRow: View {
                     if let next = note.nextOccurrence() {
                         Text("·")
                         NextTimeLabel(date: next)
+                    } else {
+                        Text("·")
+                        Text("Mark it done when finished")
                     }
                     if note.project?.isMuted == true {
                         Image(systemName: "speaker.slash")

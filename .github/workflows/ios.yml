@@ -22,7 +22,7 @@ env:
 jobs:
   core-tests:
     name: Core tests
-    if: github.event_name != 'workflow_dispatch'
+    if: github.event_name != 'workflow_dispatch' && !contains(github.event.head_commit.message || '', '[testflight]')
     runs-on: macos-26
     timeout-minutes: 20
     steps:
@@ -34,7 +34,7 @@ jobs:
 
   build:
     name: Build app (simulator)
-    if: github.event_name != 'workflow_dispatch'
+    if: github.event_name != 'workflow_dispatch' && !contains(github.event.head_commit.message || '', '[testflight]')
     runs-on: macos-26
     timeout-minutes: 40
     steps:
@@ -55,7 +55,7 @@ jobs:
   testflight:
     name: Upload to TestFlight
     # Runs on its own so a release needs only one macOS runner.
-    if: github.event_name == 'workflow_dispatch' && inputs.testflight
+    if: (github.event_name == 'workflow_dispatch' && inputs.testflight) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[testflight]'))
     runs-on: macos-26
     timeout-minutes: 60
     env:

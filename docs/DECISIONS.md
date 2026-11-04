@@ -11,6 +11,7 @@
 | 2 | Tekrar aralığı | Tamamen serbest: dakika / saat / gün / hafta (ör. "10 dk'da bir", "her gün 08:30") |
 | 3 | Yanıt verilmezse | Bir kez söyler, sonraki tekrar zamanına kadar susar |
 | 4 | Bitiş | Opsiyonel bitiş tarihi veya tekrar sayısı; "Tamamlandı" ile kapatılabilir; kapanan notlar arşive gider |
+| 30 | Süresi dolan notlar | Kullanıcı "Tamamlandı" diyene kadar listede "Söylendi · tamamlanmadı" bölümünde kalır; sabah özeti hatırlatır |
 | 5 | Platform | Yerli iOS uygulaması (iPhone + iPad + Mac + Apple Watch) |
 | 6 | Okuma dili / ses | Not dili otomatik algılanır (TR/EN/DE); sistem sesleri + Personal Voice |
 | 7 | Sessiz saatler | Varsayılan 23:00 – 07:30; biriken notlar sabah toplu okunur |

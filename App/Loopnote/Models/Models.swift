@@ -80,6 +80,10 @@ final class Note {
         nextOccurrence(after: date, calendar: calendar) == nil
     }
 
+    /// Its schedule has run out (end date, count or a one-time reminder that already spoke)
+    /// but nobody marked it done. Such notes stay in the list until they are completed.
+    var isAwaitingConfirmation: Bool { !isCompleted && hasEnded() }
+
     var textToSpeak: String { spokenTitle.isEmpty ? SpokenTitle.fallback(from: details) : spokenTitle }
 }
 

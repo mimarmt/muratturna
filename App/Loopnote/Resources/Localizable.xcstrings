@@ -3314,6 +3314,86 @@
     },
     "%@ %@": {
       "shouldTranslate": false
+    },
+    "Said · not done yet": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Söylendi · tamamlanmadı"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesagt · noch nicht erledigt"
+          }
+        }
+      }
+    },
+    "Mark it done when finished": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitince tamamlandı işaretle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Erledigung abhaken"
+          }
+        }
+      }
+    },
+    "%lld notes are still waiting to be marked done.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld not hâlâ tamamlanmayı bekliyor."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Notizen warten noch darauf, erledigt zu werden."
+          }
+        }
+      }
+    },
+    "Not done yet:": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Henüz tamamlanmadı:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht erledigt:"
+          }
+        }
+      }
+    },
+    "Not done yet": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Henüz tamamlanmadı"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht erledigt"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
