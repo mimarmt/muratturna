@@ -105,8 +105,10 @@ final class MeetingProcessor {
             try? context.save()
             do {
                 let language = meeting.language ?? LanguageDetector.fallback
-                meeting.transcript = try await MeetingTranscription.transcribe(url, language: language,
-                                                                               duration: meeting.duration)
+                let duration = meeting.duration
+                meeting.transcript = try await withTimeout(seconds: max(120, duration * 2)) {
+                    try await MeetingTranscription.transcribe(url, language: language, duration: duration)
+                }
             } catch {
                 meeting.status = .failed
                 meeting.errorMessage = error.localizedDescription
@@ -129,7 +131,10 @@ final class MeetingProcessor {
         try? context.save()
         let language = LanguageDetector.speechLanguage(for: meeting.transcript)
         meeting.language = language
-        let minutes = await MeetingSummarizer.minutes(for: meeting.transcript, language: language)
+        let transcript = meeting.transcript
+        let minutes = (try? await withTimeout(seconds: 90) {
+            await MeetingSummarizer.minutes(for: transcript, language: language)
+        }) ?? MeetingSummarizer.fallback(transcript)
         if meeting.title.isEmpty || meeting.title.hasPrefix(String(localized: "Meeting")) {
             if !minutes.title.isBlank { meeting.title = minutes.title }
         }
@@ -148,6 +153,26 @@ final class MeetingProcessor {
         meeting.status = .recorded
         meeting.errorMessage = nil
         start(meeting)
+    }
+}
+
+struct TimeoutError: LocalizedError {
+    var errorDescription: String? {
+        String(localized: "Processing took too long. Tap Try again.")
+    }
+}
+
+/// Runs `work`, failing with `TimeoutError` if it takes longer than `seconds`.
+func withTimeout<T: Sendable>(seconds: Double, _ work: @escaping @Sendable () async throws -> T) async throws -> T {
+    try await withThrowingTaskGroup(of: T.self) { group in
+        group.addTask { try await work() }
+        group.addTask {
+            try await Task.sleep(for: .seconds(seconds))
+            throw TimeoutError()
+        }
+        defer { group.cancelAll() }
+        guard let first = try await group.next() else { throw TimeoutError() }
+        return first
     }
 }
 
