@@ -29,6 +29,8 @@
 | 25 | Doğal ses | ElevenLabs: test aşamasında kullanıcının kendi API anahtarı (Keychain); yayından önce sunucu proxy + Pro abonelik. Yalnızca sesli başlık gönderilir, ses cihazda saklanır |
 | 26 | v1.1 öncelikleri | Sırayla: Toplantı modu → Fotoğraflı not → Konum hatırlatma → AlarmKit |
 | 27 | Toplantı başlatma | Ana ekranda Toplantı butonu + Action Button + Kontrol Merkezi + Apple Watch |
+| 28 | Toplantı çıktısı | Tam tutanak: özet, kararlar, aksiyonlar (Loopnote hatırlatmasına dönüşür), konuşmacı ayrımlı metin, PDF; WhatsApp/Mail/Kopyala paylaşım |
+| 29 | Toplantı yapay zekâ işleme | Apple Private Cloud Compute (iOS 27), yedek cihaz içi parça parça özet; Claude sonradan Pro Plus |
 | 21 | Uygulama ikonu | D · Cam Küre: Liquid Glass küre, amber ses dalgası, yayılan halkalar (`design/icons/final/`) |
 
 ## Teknoloji
