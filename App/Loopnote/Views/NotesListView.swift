@@ -123,12 +123,12 @@ struct NotesListView: View {
         .safeAreaInset(edge: .bottom) {
             GlassEffectContainer(spacing: 14) {
                 HStack(spacing: 14) {
-                    Button { composer = Composer(dictate: false) } label: {
+                    Button { compose(dictate: false) } label: {
                         ActionLabel(title: "Write", symbol: "square.and.pencil")
                     }
                     .buttonStyle(.glass)
 
-                    Button { composer = Composer(dictate: true) } label: {
+                    Button { compose(dictate: true) } label: {
                         ActionLabel(title: "Speak", symbol: "mic.fill", wide: true)
                     }
                     .buttonStyle(.glassProminent)
@@ -157,6 +157,12 @@ struct NotesListView: View {
 
     private var selectedProject: Project? {
         projects.first { $0.id == projectFilter }
+    }
+
+    /// Free plan: up to 10 active notes.
+    private func compose(dictate: Bool) {
+        if notes.count >= ProStore.freeNoteLimit, !ProStore.shared.require() { return }
+        composer = Composer(dictate: dictate)
     }
 
     private func complete(_ note: Note) {

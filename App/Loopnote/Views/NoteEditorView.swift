@@ -472,7 +472,9 @@ struct NoteEditorView: View {
                 Label("Critical", systemImage: "alarm")
             }
             .onChange(of: isCritical) { _, on in
-                if on { Task { _ = await CriticalAlarms.requestAuthorization() } }
+                guard on else { return }
+                if !ProStore.shared.require() { isCritical = false; return }
+                Task { _ = await CriticalAlarms.requestAuthorization() }
             }
         } footer: {
             Text("Critical notes ring as a full-screen alarm, even in Silent mode and Focus.")

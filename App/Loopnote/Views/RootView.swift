@@ -5,6 +5,7 @@ struct RootView: View {
     @AppStorage(AppSettings.Key.onboarded) private var onboarded = false
 
     @Bindable private var router = AppRouter.shared
+    @Bindable private var pro = ProStore.shared
 
     var body: some View {
         TabView(selection: $router.tab) {
@@ -19,6 +20,7 @@ struct RootView: View {
         .fullScreenCover(isPresented: $router.showMeetingRecorder) {
             MeetingRecorderView()
         }
+        .sheet(isPresented: $pro.showPaywall) { PaywallView() }
         .sheet(isPresented: Binding(get: { !onboarded }, set: { _ in })) {
             OnboardingView { onboarded = true }
                 .interactiveDismissDisabled()

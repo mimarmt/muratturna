@@ -29,7 +29,10 @@ struct ProjectsView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             ToolbarItem(placement: .primaryAction) {
-                Button { showingNew = true } label: { Image(systemName: "plus") }
+                Button {
+                    if projects.count >= ProStore.freeProjectLimit, !ProStore.shared.require() { return }
+                    showingNew = true
+                } label: { Image(systemName: "plus") }
                     .accessibilityLabel("New project")
             }
         }

@@ -19,6 +19,18 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section {
+                if ProStore.shared.isPro {
+                    Label(ProStore.shared.isTestBuild ? "Loopnote Pro (TestFlight)" : "Loopnote Pro", systemImage: "checkmark.seal.fill")
+                        .foregroundStyle(Theme.amber)
+                } else {
+                    Button { ProStore.shared.showPaywall = true } label: {
+                        Label("Get Loopnote Pro", systemImage: "seal")
+                    }
+                }
+                Button("Restore purchases") { Task { await ProStore.shared.restore() } }
+            }
+
+            Section {
                 Toggle("Quiet hours", isOn: $quietEnabled)
                 if quietEnabled {
                     DatePicker("From", selection: minutes($quietStart), displayedComponents: .hourAndMinute)
@@ -55,6 +67,7 @@ struct SettingsView: View {
                 }
                 .onChange(of: usePersonalVoice) { _, on in
                     guard on else { return }
+                    if !ProStore.shared.require() { usePersonalVoice = false; return }
                     Task {
                         if !(await VoiceCatalog.requestPersonalVoice()) { usePersonalVoice = false }
                     }
@@ -291,7 +304,10 @@ private struct ElevenLabsSection: View {
             Text("Only the short spoken title is sent to ElevenLabs, once per note; the audio is stored on your iPhone. ★ marks your cloned voices. Create a key at elevenlabs.io › Developers › API keys.")
         }
         .task(id: hasKey) { if enabled && hasKey && voices.isEmpty { await loadVoices() } }
-        .onChange(of: enabled) { _, on in if on && hasKey && voices.isEmpty { Task { await loadVoices() } } }
+        .onChange(of: enabled) { _, on in
+            if on && !ProStore.shared.require() { enabled = false; return }
+            if on && hasKey && voices.isEmpty { Task { await loadVoices() } }
+        }
         .onChange(of: voiceID) { _, id in
             voiceName = voices.first { $0.voice_id == id }?.name ?? voiceName
         }

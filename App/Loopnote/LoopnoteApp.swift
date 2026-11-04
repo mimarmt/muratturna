@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         AlertScheduler.shared.registerCategories()
         Theme.applyNavigationBarAppearance()
         WatchSync.shared.activate()
+        ProStore.shared.start()
         try? Tips.configure([.displayFrequency(.daily)])
         return true
     }

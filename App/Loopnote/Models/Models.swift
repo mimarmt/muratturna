@@ -105,12 +105,62 @@ enum Persistence {
     static let container: ModelContainer = {
         let schema = Schema([Note.self, Project.self, Meeting.self])
         let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
+        StoreBackup.daily(storeURL: config.url)
         do {
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
-            // Fall back to a local store so the app still launches (e.g. iCloud unavailable).
+            // iCloud unavailable or misconfigured: open the same file locally.
             let local = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
+            if let c = try? ModelContainer(for: schema, configurations: [local]) { return c }
+            // The store cannot be opened (e.g. a failed migration). Keep it for recovery
+            // instead of crashing, then start a fresh one.
+            StoreBackup.quarantine(storeURL: config.url)
             return try! ModelContainer(for: schema, configurations: [local])
         }
     }()
+}
+
+/// Copies of the SwiftData store so an update can never silently lose notes.
+enum StoreBackup {
+    static let keep = 3
+
+    static var directory: URL {
+        let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Backups", isDirectory: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    private static func files(for store: URL) -> [URL] {
+        ["", "-wal", "-shm"].map { URL(fileURLWithPath: store.path + $0) }
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+    }
+
+    /// At most one backup per day; the oldest beyond `keep` are removed.
+    static func daily(storeURL: URL) {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: storeURL.path) else { return }
+        let day = Date.now.formatted(.iso8601.year().month().day())
+        let target = directory.appendingPathComponent(day, isDirectory: true)
+        guard !fm.fileExists(atPath: target.path) else { return }
+        try? fm.createDirectory(at: target, withIntermediateDirectories: true)
+        for file in files(for: storeURL) {
+            try? fm.copyItem(at: file, to: target.appendingPathComponent(file.lastPathComponent))
+        }
+        let all = ((try? fm.contentsOfDirectory(atPath: directory.path)) ?? [])
+            .filter { !$0.hasPrefix("failed-") }.sorted()
+        for old in all.dropLast(keep) {
+            try? fm.removeItem(at: directory.appendingPathComponent(old))
+        }
+    }
+
+    /// Moves an unreadable store aside (kept for manual recovery).
+    static func quarantine(storeURL: URL) {
+        let fm = FileManager.default
+        let target = directory.appendingPathComponent("failed-\(Int(Date.now.timeIntervalSince1970))", isDirectory: true)
+        try? fm.createDirectory(at: target, withIntermediateDirectories: true)
+        for file in files(for: storeURL) {
+            try? fm.moveItem(at: file, to: target.appendingPathComponent(file.lastPathComponent))
+        }
+    }
 }
