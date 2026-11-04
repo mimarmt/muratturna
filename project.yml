@@ -45,7 +45,7 @@ targets:
         UISupportedInterfaceOrientations~ipad:
           [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown,
            UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
-        UIBackgroundModes: [fetch]
+        UIBackgroundModes: [fetch, audio]
         BGTaskSchedulerPermittedIdentifiers: [com.muratturna.loopnote.replan]
         NSMicrophoneUsageDescription: Loopnote uses the microphone so you can dictate notes.
         NSSpeechRecognitionUsageDescription: Loopnote turns your voice into text on your device.

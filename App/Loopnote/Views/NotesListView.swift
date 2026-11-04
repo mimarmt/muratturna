@@ -86,23 +86,35 @@ struct NotesListView: View {
         }
         .safeAreaInset(edge: .bottom) {
             GlassEffectContainer(spacing: 16) {
-                HStack(spacing: 16) {
+                HStack(spacing: 12) {
                     Button { composer = Composer(dictate: false) } label: {
                         Label("Write", systemImage: "square.and.pencil")
-                            .padding(.horizontal, 6)
+                            .padding(.horizontal, 2)
                     }
                     .buttonStyle(.glass)
 
                     Button { composer = Composer(dictate: true) } label: {
                         Label("Speak", systemImage: "mic.fill")
                             .font(.headline)
-                            .padding(.horizontal, 18)
+                            .padding(.horizontal, 10)
                     }
                     .buttonStyle(.glassProminent)
+
+                    Button { AppRouter.shared.showMeetingRecorder = true } label: {
+                        Label("Meeting", systemImage: "person.2.wave.2")
+                            .padding(.horizontal, 2)
+                    }
+                    .buttonStyle(.glass)
                 }
-                .controlSize(.extraLarge)
+                .controlSize(.large)
             }
             .padding(.bottom, 8)
+        }
+        .onChange(of: AppRouter.shared.startVoiceNote, initial: true) { _, start in
+            if start {
+                AppRouter.shared.startVoiceNote = false
+                composer = Composer(dictate: true)
+            }
         }
         .sheet(item: $editing) { NoteEditorView(note: $0) }
         .sheet(item: $composer) { NoteEditorView(note: nil, startDictation: $0.dictate, project: selectedProject) }

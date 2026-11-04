@@ -4,11 +4,21 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(AppSettings.Key.onboarded) private var onboarded = false
 
+    @Bindable private var router = AppRouter.shared
+
     var body: some View {
-        NavigationStack {
-            NotesListView()
+        TabView(selection: $router.tab) {
+            Tab("Notes", systemImage: "waveform", value: AppRouter.Tab.notes) {
+                NavigationStack { NotesListView() }
+            }
+            Tab("Meetings", systemImage: "person.2.wave.2", value: AppRouter.Tab.meetings) {
+                NavigationStack { MeetingsListView() }
+            }
         }
         .tint(Theme.amber)
+        .fullScreenCover(isPresented: $router.showMeetingRecorder) {
+            MeetingRecorderView()
+        }
         .sheet(isPresented: Binding(get: { !onboarded }, set: { _ in })) {
             OnboardingView { onboarded = true }
                 .interactiveDismissDisabled()

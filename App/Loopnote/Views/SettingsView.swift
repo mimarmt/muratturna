@@ -163,23 +163,27 @@ private struct VoicePickerRow: View {
                 }
             }
             .pickerStyle(.menu)
-            Button {
-                let sample = switch language.prefix(2) {
-                case "tr": "Yarın saat onda belediyeye eksik evrakları götür."
-                case "de": "Morgen um zehn die fehlenden Unterlagen zum Bauamt bringen."
-                default: "Bring the missing documents to the city office tomorrow at ten."
-                }
-                SpeechRenderer.shared.speakNow(sample, language: language)
-            } label: {
-                Image(systemName: "play.circle")
-            }
-            .buttonStyle(.borderless)
-            .accessibilityLabel("Preview voice")
         }
         .onAppear { selection = AppSettings.voiceIdentifier(for: language) ?? "" }
-        .onChange(of: selection) { _, id in
+        .onChange(of: selection) { old, id in
             UserDefaults.standard.set(id, forKey: AppSettings.voiceKey(for: language))
+            if old != id { preview() }
         }
+    }
+
+    /// Plays a sample with the Apple voice just chosen.
+    private func preview() {
+        let sample = switch language.prefix(2) {
+        case "tr": "Yarın saat onda belediyeye eksik evrakları götür."
+        case "de": "Morgen um zehn die fehlenden Unterlagen zum Bauamt bringen."
+        default: "Bring the missing documents to the city office tomorrow at ten."
+        }
+        let synth = AVSpeechSynthesizer.previewSynth
+        let u = AVSpeechUtterance(string: sample)
+        u.voice = VoiceCatalog.voice(for: language, allowPersonal: false)
+        u.rate = AppSettings.speechRate
+        synth.stopSpeaking(at: .immediate)
+        synth.speak(u)
     }
 }
 
@@ -405,4 +409,9 @@ private struct SharedVoicesView: View {
             self.error = error.localizedDescription
         }
     }
+}
+
+extension AVSpeechSynthesizer {
+    /// Shared synthesizer for voice previews in Settings.
+    @MainActor static let previewSynth = AVSpeechSynthesizer()
 }

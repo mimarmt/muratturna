@@ -12,6 +12,8 @@ final class Project {
     var createdAt: Date = Date.now
     @Relationship(deleteRule: .nullify, inverse: \Note.project)
     var notes: [Note]? = []
+    @Relationship(deleteRule: .nullify, inverse: \Meeting.project)
+    var meetings: [Meeting]? = []
 
     init(name: String, colorHex: String = "#FFA53D") {
         self.name = name
@@ -84,7 +86,7 @@ final class Note {
 /// Shared SwiftData container, also used by the notification delegate and background tasks.
 enum Persistence {
     static let container: ModelContainer = {
-        let schema = Schema([Note.self, Project.self])
+        let schema = Schema([Note.self, Project.self, Meeting.self])
         let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
         do {
             return try ModelContainer(for: schema, configurations: [config])

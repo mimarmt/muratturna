@@ -34,7 +34,16 @@ enum ElevenLabsClient {
         var errorDescription: String? {
             switch self {
             case .noKey: String(localized: "Add your ElevenLabs API key first.")
-            case .http(let code, let body): "ElevenLabs \(code): \(body.prefix(160))"
+            case .http(let code, let body):
+                if body.contains("paid_plan_required") || code == 402 {
+                    String(localized: "This voice needs a paid ElevenLabs plan (Starter or higher).")
+                } else if code == 401 {
+                    String(localized: "The ElevenLabs API key is not valid or lacks permissions.")
+                } else if code == 429 || body.contains("quota") {
+                    String(localized: "Your ElevenLabs quota is used up for this month.")
+                } else {
+                    String(localized: "ElevenLabs could not create the voice (error \(code)).")
+                }
             }
         }
     }
