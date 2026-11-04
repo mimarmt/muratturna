@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         Theme.applyNavigationBarAppearance()
         WatchSync.shared.activate()
         ProStore.shared.start()
+        MeetingProcessor.shared.prewarm()
         try? Tips.configure([.displayFrequency(.daily)])
         return true
     }

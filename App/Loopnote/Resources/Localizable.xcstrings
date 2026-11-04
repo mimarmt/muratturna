@@ -4210,6 +4210,54 @@
           }
         }
       }
+    },
+    "Downloading the speech model…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konuşma modeli indiriliyor…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachmodell wird geladen …"
+          }
+        }
+      }
+    },
+    "Separating speakers…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konuşmacılar ayrılıyor…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprecher werden getrennt …"
+          }
+        }
+      }
+    },
+    "Downloading the speech model (first time only)…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konuşma modeli indiriliyor (yalnızca ilk sefer)…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachmodell wird geladen (nur beim ersten Mal) …"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

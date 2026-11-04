@@ -1,4 +1,5 @@
 import AVFoundation
+import Observation
 import BackgroundTasks
 import Foundation
 import FoundationModels
@@ -8,12 +9,38 @@ import UIKit
 
 /// Turns a recorded meeting into a transcript and AI minutes.
 @MainActor
+@Observable
 final class MeetingProcessor {
     static let shared = MeetingProcessor()
     static let taskPrefix = "com.muratturna.loopnote.meeting."
 
     /// Meetings being processed right now (so resume never runs one twice).
     private var inFlight = Set<UUID>()
+
+    enum Stage: Sendable { case downloadingModel, transcribing, speakers, summarizing }
+    /// What the current meeting is doing, shown on its minutes screen.
+    private(set) var stage: Stage = .transcribing
+    private var currentTask: BGContinuedProcessingTask?
+
+    func setStage(_ s: Stage) {
+        stage = s
+        let text: String = switch s {
+        case .downloadingModel: String(localized: "Downloading the speech model…")
+        case .transcribing: String(localized: "Transcribing…")
+        case .speakers: String(localized: "Separating speakers…")
+        case .summarizing: String(localized: "Finding decisions and action items…")
+        }
+        currentTask?.updateTitle(String(localized: "Writing meeting minutes"), subtitle: text)
+    }
+
+    /// Fetches speech and speaker models in the background so the first meeting is fast.
+    func prewarm() {
+        let language = LanguageDetector.fallback
+        Task.detached(priority: .background) {
+            await MeetingTranscription.prewarm(language: language)
+            await SpeakerDiarization.prewarm()
+        }
+    }
 
     /// Starts processing as a continued background task (iOS 26): it keeps running when the
     /// app goes to the background, with progress shown by the system. Falls back to a
@@ -58,7 +85,8 @@ final class MeetingProcessor {
         guard let meeting = try? context.fetch(FetchDescriptor<Meeting>(predicate: #Predicate { $0.id == id })).first
         else { return false }
         inFlight.insert(id)
-        defer { inFlight.remove(id) }
+        currentTask = task
+        defer { inFlight.remove(id); currentTask = nil }
         task?.progress.totalUnitCount = 100
         task?.progress.completedUnitCount = 5
         nonisolated(unsafe) let bg = task
@@ -97,6 +125,7 @@ final class MeetingProcessor {
         }
 
         meeting.status = .summarizing
+        setStage(.summarizing)
         try? context.save()
         let language = LanguageDetector.speechLanguage(for: meeting.transcript)
         meeting.language = language
@@ -131,21 +160,38 @@ enum MeetingTranscription {
 
     static func transcribe(_ url: URL, language: String, duration: Double) async throws -> String {
         if let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: language)) {
-            // Diarization is a bonus: never let it hold up the transcript.
-            let limit = max(90, duration * 0.8)
+            // Diarization is a bonus: skipped for short clips, time-limited for long ones,
+            // and never allowed to hold up the transcript.
+            guard duration >= 45 else {
+                let pieces = try await withSpeechAnalyzer(url, locale: locale)
+                return SpeakerDiarization.label(pieces, with: [])
+            }
+            let limit = min(60, max(20, duration * 0.5))
             async let spans = SpeakerDiarization.speakers(in: url, timeout: limit)
             let pieces = try await withSpeechAnalyzer(url, locale: locale)
+            await MeetingProcessor.shared.setStage(.speakers)
             return SpeakerDiarization.label(pieces, with: await spans)
         }
         return try await withLegacyRecognizer(url, language: language)
     }
 
     /// iOS 26 SpeechAnalyzer: designed for long meetings and distant speakers.
+    /// Downloads the speech model for a language ahead of the first meeting.
+    static func prewarm(language: String) async {
+        guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: language)) else { return }
+        let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
+        if let request = try? await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+            try? await request.downloadAndInstall()
+        }
+    }
+
     private static func withSpeechAnalyzer(_ url: URL, locale: Locale) async throws -> [SpeakerDiarization.Piece] {
         let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
         if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+            await MeetingProcessor.shared.setStage(.downloadingModel)
             try await request.downloadAndInstall()
         }
+        await MeetingProcessor.shared.setStage(.transcribing)
         let analyzer = SpeechAnalyzer(modules: [transcriber])
         let collector = Task {
             var pieces: [SpeakerDiarization.Piece] = []

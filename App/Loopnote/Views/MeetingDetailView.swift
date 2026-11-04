@@ -89,8 +89,7 @@ struct MeetingDetailView: View {
         switch meeting.status {
         case .recorded, .transcribing, .summarizing:
             Section {
-                ProgressRow(text: meeting.status == .summarizing ? "Finding decisions and action items…"
-                                                                   : "Writing the transcript on your iPhone…")
+                ProgressRow(text: stageText)
                 if !MeetingProcessor.shared.isProcessing(meeting.id) {
                     // Interrupted (app was closed): offer to continue.
                     Button("Continue processing") { MeetingProcessor.shared.retry(meeting) }
@@ -108,6 +107,17 @@ struct MeetingDetailView: View {
             }
         case .ready:
             EmptyView()
+        }
+    }
+
+    private var stageText: LocalizedStringKey {
+        if meeting.status == .summarizing { return "Finding decisions and action items…" }
+        guard MeetingProcessor.shared.isProcessing(meeting.id) else { return "Writing the transcript on your iPhone…" }
+        switch MeetingProcessor.shared.stage {
+        case .downloadingModel: return "Downloading the speech model (first time only)…"
+        case .transcribing: return "Writing the transcript on your iPhone…"
+        case .speakers: return "Separating speakers…"
+        case .summarizing: return "Finding decisions and action items…"
         }
     }
 

@@ -24,6 +24,12 @@ enum SpeakerDiarization {
         }
     }
 
+    /// Downloads and compiles the diarization models ahead of the first long meeting.
+    static func prewarm() async {
+        let manager = OfflineDiarizerManager(config: .default)
+        try? await manager.prepareModels()
+    }
+
     private static func diarize(_ url: URL) async -> [Span] {
         do {
             let manager = OfflineDiarizerManager(config: .default)
