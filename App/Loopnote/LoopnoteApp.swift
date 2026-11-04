@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         UNUserNotificationCenter.current().delegate = notificationDelegate
         AlertScheduler.shared.registerCategories()
         Theme.applyNavigationBarAppearance()
+        WatchSync.shared.activate()
         return true
     }
 }

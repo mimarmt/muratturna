@@ -60,7 +60,7 @@ jobs:
     timeout-minutes: 60
     env:
       BUNDLE_ID: com.muratturna.loopnote
-      EXTRA_BUNDLE_IDS: com.muratturna.loopnote.widgets=WIDGET_PROFILE_NAME
+      EXTRA_BUNDLE_IDS: com.muratturna.loopnote.widgets=WIDGET_PROFILE_NAME,com.muratturna.loopnote.watchkitapp=WATCH_PROFILE_NAME
     steps:
       - uses: actions/checkout@v4
       - run: ci/select-xcode.sh
@@ -97,7 +97,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Loopnote.xcarchive" \
             LN_SIGN_STYLE=Manual LN_SIGN_IDENTITY="Apple Distribution" LN_PROFILE="$PROFILE_NAME" \
-            LN_WIDGET_PROFILE="$WIDGET_PROFILE_NAME" \
+            LN_WIDGET_PROFILE="$WIDGET_PROFILE_NAME" LN_WATCH_PROFILE="$WATCH_PROFILE_NAME" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} | xcbeautify --renderer github-actions
       - name: Export IPA
         run: |

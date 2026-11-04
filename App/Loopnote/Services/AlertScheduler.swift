@@ -232,6 +232,7 @@ final class AlertScheduler {
         var nextTitle: String?
         if let next, case .note(let id, _, _) = next.kind { nextTitle = byID[id]?.textToSpeak }
         LiveActivityController.showNextNote(title: nextTitle, at: next?.date)
+        WatchSync.shared.send(notes)
     }
 
     /// When quiet hours end next (or 09:00 when quiet hours are off).
