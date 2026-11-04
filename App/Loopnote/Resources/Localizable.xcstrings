@@ -3810,6 +3810,54 @@
           }
         }
       }
+    },
+    "Next note on Lock Screen": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıradaki not kilit ekranında"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächste Notiz auf dem Sperrbildschirm"
+          }
+        }
+      }
+    },
+    "Shows a countdown to the next note on the Lock Screen and in the Dynamic Island when it speaks within 8 hours.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıradaki not 8 saat içinde konuşacaksa kilit ekranında ve Dynamic Island'da geri sayım gösterir."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt einen Countdown zur nächsten Notiz auf dem Sperrbildschirm und in der Dynamic Island, wenn sie innerhalb von 8 Stunden spricht."
+          }
+        }
+      }
+    },
+    "Speaker %lld": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konuşmacı %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprecher %lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

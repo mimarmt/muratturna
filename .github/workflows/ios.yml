@@ -60,6 +60,7 @@ jobs:
     timeout-minutes: 60
     env:
       BUNDLE_ID: com.muratturna.loopnote
+      EXTRA_BUNDLE_IDS: com.muratturna.loopnote.widgets=WIDGET_PROFILE_NAME
     steps:
       - uses: actions/checkout@v4
       - run: ci/select-xcode.sh
@@ -96,23 +97,19 @@ jobs:
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Loopnote.xcarchive" \
             LN_SIGN_STYLE=Manual LN_SIGN_IDENTITY="Apple Distribution" LN_PROFILE="$PROFILE_NAME" \
+            LN_WIDGET_PROFILE="$WIDGET_PROFILE_NAME" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} | xcbeautify --renderer github-actions
       - name: Export IPA
         run: |
           set -o pipefail
-          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0"><dict>
-            <key>method</key><string>app-store-connect</string>
-            <key>destination</key><string>export</string>
-            <key>teamID</key><string>RQ82R94TUH</string>
-            <key>signingStyle</key><string>manual</string>
-            <key>signingCertificate</key><string>Apple Distribution</string>
-            <key>provisioningProfiles</key><dict><key>${BUNDLE_ID}</key><string>${PROFILE_NAME}</string></dict>
-            <key>uploadSymbols</key><true/>
-          </dict></plist>
-          PLIST
+          python3 - <<'PY'
+          import json, os, plistlib
+          opts = {"method": "app-store-connect", "destination": "export", "teamID": "RQ82R94TUH",
+                  "signingStyle": "manual", "signingCertificate": "Apple Distribution",
+                  "provisioningProfiles": json.loads(os.environ["PROFILE_MAP"]), "uploadSymbols": True}
+          with open(os.environ["RUNNER_TEMP"] + "/ExportOptions.plist", "wb") as f:
+              plistlib.dump(opts, f)
+          PY
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Loopnote.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$RUNNER_TEMP/export" | xcbeautify --renderer github-actions

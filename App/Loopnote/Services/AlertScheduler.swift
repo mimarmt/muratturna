@@ -226,6 +226,12 @@ final class AlertScheduler {
 
         SpeechRenderer.shared.pruneSounds(keeping: usedSounds)
         scheduleBackgroundRefresh(horizon: plan.horizon)
+
+        // Lock Screen / Dynamic Island: the next note that will speak.
+        let next = plan.alerts.first { if case .note = $0.kind { true } else { false } }
+        var nextTitle: String?
+        if let next, case .note(let id, _, _) = next.kind { nextTitle = byID[id]?.textToSpeak }
+        LiveActivityController.showNextNote(title: nextTitle, at: next?.date)
     }
 
     /// When quiet hours end next (or 09:00 when quiet hours are off).

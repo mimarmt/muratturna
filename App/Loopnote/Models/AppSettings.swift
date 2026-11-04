@@ -13,6 +13,7 @@ enum AppSettings {
         static let speechRate = "voice.rate"
         static let onboarded = "onboarded"
         static let elevenEnabled = "eleven.enabled"
+        static let nextNoteActivity = "activity.nextNote"
         static let elevenVoiceID = "eleven.voice.id"
         static let elevenVoiceName = "eleven.voice.name"
         static let elevenModel = "eleven.model"
@@ -24,7 +25,8 @@ enum AppSettings {
             Key.quietStart: 23 * 60,
             Key.quietEnd: 7 * 60 + 30,
             Key.usePersonalVoice: false,
-            Key.speechRate: 0.5
+            Key.speechRate: 0.5,
+            Key.nextNoteActivity: true
         ])
     }
 
@@ -36,6 +38,7 @@ enum AppSettings {
     }
 
     static var usePersonalVoice: Bool { d.bool(forKey: Key.usePersonalVoice) }
+    static var showNextNoteActivity: Bool { d.bool(forKey: Key.nextNoteActivity) }
 
     /// ElevenLabs voice to use, when enabled and configured.
     static var elevenVoice: (id: String, model: String)? {

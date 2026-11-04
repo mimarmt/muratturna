@@ -53,6 +53,7 @@ final class MeetingRecorder {
             fileName = name
             state = .recording
             startMetering()
+            LiveActivityController.startMeeting(at: .now)
             return true
         } catch {
             errorMessage = error.localizedDescription
@@ -63,11 +64,13 @@ final class MeetingRecorder {
     func pause() {
         recorder?.pause()
         state = .paused
+        LiveActivityController.updateMeeting(start: .now.addingTimeInterval(-elapsed), paused: true)
     }
 
     func resume() {
         recorder?.record()
         state = .recording
+        LiveActivityController.updateMeeting(start: .now.addingTimeInterval(-elapsed), paused: false)
     }
 
     /// Stops and returns the file name and duration.
@@ -76,6 +79,7 @@ final class MeetingRecorder {
         let duration = recorder.currentTime
         recorder.stop()
         meterTask?.cancel()
+        LiveActivityController.endMeeting()
         self.recorder = nil
         state = .idle
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)

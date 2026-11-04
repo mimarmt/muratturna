@@ -20,6 +20,9 @@ settings:
 packages:
   LoopnoteCore:
     path: Packages/LoopnoteCore
+  FluidAudio:
+    url: https://github.com/FluidInference/FluidAudio
+    exactVersion: 0.18.2
 
 targets:
   Loopnote:
@@ -27,8 +30,11 @@ targets:
     platform: iOS
     sources:
       - path: App/Loopnote
+      - path: App/Shared
     dependencies:
       - package: LoopnoteCore
+      - package: FluidAudio
+      - target: LoopnoteWidgets
     info:
       path: App/Loopnote/Info.plist
       properties:
@@ -64,6 +70,31 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         INFOPLIST_KEY_CFBundleDisplayName: Loopnote
+
+  LoopnoteWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: App/LoopnoteWidgets
+      - path: App/Shared
+    info:
+      path: App/LoopnoteWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Loopnote
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.muratturna.loopnote.widgets
+        CODE_SIGN_STYLE: "$(LN_SIGN_STYLE:default=Automatic)"
+        CODE_SIGN_IDENTITY: "$(LN_SIGN_IDENTITY:default=Apple Development)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(LN_WIDGET_PROFILE)"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) WIDGET_EXTENSION"
+        SKIP_INSTALL: YES
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
 
 schemes:
   Loopnote:

@@ -52,19 +52,26 @@ def env(name, value, secret=False):
         f.write(f"{name}={value}\n")
 
 
-def setup():
-    # 1. Bundle ID
-    found = call("GET", f"/bundleIds?filter[identifier]={BUNDLE_ID}&filter[platform]=IOS").get("data", [])
-    found = [b for b in found if b["attributes"]["identifier"] == BUNDLE_ID]
+def ensure_bundle(identifier, name):
+    found = call("GET", f"/bundleIds?filter[identifier]={identifier}&filter[platform]=IOS").get("data", [])
+    found = [b for b in found if b["attributes"]["identifier"] == identifier]
     if found:
-        bundle = found[0]["id"]
-        print(f"Bundle ID {BUNDLE_ID} already registered")
-    else:
-        bundle = call("POST", "/bundleIds", {"data": {"type": "bundleIds", "attributes": {
-            "identifier": BUNDLE_ID, "name": "Loopnote", "platform": "IOS"}}})["data"]["id"]
-        print(f"Registered bundle ID {BUNDLE_ID}")
+        print(f"Bundle ID {identifier} already registered")
+        return found[0]["id"]
+    bid = call("POST", "/bundleIds", {"data": {"type": "bundleIds", "attributes": {
+        "identifier": identifier, "name": name, "platform": "IOS"}}})["data"]["id"]
+    print(f"Registered bundle ID {identifier}")
+    return bid
 
-    # 2. Temporary distribution certificate
+
+def setup():
+    targets = [(BUNDLE_ID, "Loopnote", "PROFILE_NAME")]
+    for extra in filter(None, os.environ.get("EXTRA_BUNDLE_IDS", "").split(",")):
+        ident, envname = extra.split("=")
+        targets.append((ident.strip(), "Loopnote " + ident.split(".")[-1], envname.strip()))
+    bundles = [(ident, ensure_bundle(ident, name), envname) for ident, name, envname in targets]
+
+    # Temporary distribution certificate
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     csr = (x509.CertificateSigningRequestBuilder()
            .subject_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Loopnote CI"),
@@ -74,7 +81,8 @@ def setup():
     cert = call("POST", "/certificates", {"data": {"type": "certificates", "attributes": {
         "certificateType": "DISTRIBUTION", "csrContent": csr_pem}}})["data"]
     cert_id = cert["id"]
-    json.dump({"cert": cert_id}, open(STATE, "w"))
+    state = {"cert": cert_id, "profiles": []}
+    json.dump(state, open(STATE, "w"))
     der = base64.b64decode(cert["attributes"]["certificateContent"])
     print(f"Created distribution certificate {cert_id}")
 
@@ -85,28 +93,32 @@ def setup():
     p12_path = os.path.join(TMP, "dist.p12")
     open(p12_path, "wb").write(p12)
 
-    # 3. App Store provisioning profile
-    name = f"Loopnote CI {os.environ.get('GITHUB_RUN_ID', int(time.time()))}"
-    prof = call("POST", "/profiles", {"data": {"type": "profiles",
-        "attributes": {"name": name, "profileType": "IOS_APP_STORE"},
-        "relationships": {"bundleId": {"data": {"type": "bundleIds", "id": bundle}},
-                          "certificates": {"data": [{"type": "certificates", "id": cert_id}]}}}})["data"]
-    json.dump({"cert": cert_id, "profile": prof["id"]}, open(STATE, "w"))
-    uuid = prof["attributes"]["uuid"]
+    # One App Store provisioning profile per bundle
     pdir = os.path.expanduser("~/Library/MobileDevice/Provisioning Profiles")
     os.makedirs(pdir, exist_ok=True)
-    open(os.path.join(pdir, f"{uuid}.mobileprovision"), "wb").write(
-        base64.b64decode(prof["attributes"]["profileContent"]))
-    print(f"Created provisioning profile '{name}' ({uuid})")
+    mapping = {}
+    run = os.environ.get("GITHUB_RUN_ID", str(int(time.time())))
+    for ident, bundle, envname in bundles:
+        name = f"Loopnote CI {run} {ident.split('.')[-1]}"
+        prof = call("POST", "/profiles", {"data": {"type": "profiles",
+            "attributes": {"name": name, "profileType": "IOS_APP_STORE"},
+            "relationships": {"bundleId": {"data": {"type": "bundleIds", "id": bundle}},
+                              "certificates": {"data": [{"type": "certificates", "id": cert_id}]}}}})["data"]
+        state["profiles"].append(prof["id"])
+        json.dump(state, open(STATE, "w"))
+        open(os.path.join(pdir, f"{prof['attributes']['uuid']}.mobileprovision"), "wb").write(
+            base64.b64decode(prof["attributes"]["profileContent"]))
+        print(f"Created provisioning profile '{name}'")
+        env(envname, name)
+        mapping[ident] = name
 
-    # 4. Does the App Store Connect app record exist yet?
     apps = call("GET", f"/apps?filter[bundleId]={BUNDLE_ID}").get("data", [])
     exists = any(a["attributes"]["bundleId"] == BUNDLE_ID for a in apps)
     print("App Store Connect app record:", "found" if exists else "NOT FOUND")
 
     env("P12_PATH", p12_path)
     env("P12_PASSWORD", password, secret=True)
-    env("PROFILE_NAME", name)
+    env("PROFILE_MAP", json.dumps(mapping))
     env("APP_RECORD_EXISTS", "yes" if exists else "no")
 
 
@@ -114,13 +126,15 @@ def cleanup():
     if not os.path.exists(STATE):
         return
     st = json.load(open(STATE))
-    for kind, key in (("profiles", "profile"), ("certificates", "cert")):
-        if st.get(key):
-            try:
-                call("DELETE", f"/{kind}/{st[key]}")
-                print(f"Deleted {kind[:-1]} {st[key]}")
-            except SystemExit as e:
-                print(f"warning: {e}")
+    items = [("profiles", p) for p in st.get("profiles", [])]
+    if st.get("cert"):
+        items.append(("certificates", st["cert"]))
+    for kind, ident in items:
+        try:
+            call("DELETE", f"/{kind}/{ident}")
+            print(f"Deleted {kind[:-1]} {ident}")
+        except SystemExit as e:
+            print(f"warning: {e}")
 
 
 if __name__ == "__main__":

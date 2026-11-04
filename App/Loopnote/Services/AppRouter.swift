@@ -15,32 +15,6 @@ final class AppRouter {
     var openMeetingID: UUID?
 }
 
-struct StartMeetingIntent: AppIntent {
-    static let title: LocalizedStringResource = "Start meeting recording"
-    static let description = IntentDescription("Opens Loopnote and starts recording a meeting.")
-    static let openAppWhenRun = true
-
-    @MainActor
-    func perform() async throws -> some IntentResult {
-        AppRouter.shared.tab = .meetings
-        AppRouter.shared.showMeetingRecorder = true
-        return .result()
-    }
-}
-
-struct NewVoiceNoteIntent: AppIntent {
-    static let title: LocalizedStringResource = "New voice note"
-    static let description = IntentDescription("Opens Loopnote and starts dictating a living note.")
-    static let openAppWhenRun = true
-
-    @MainActor
-    func perform() async throws -> some IntentResult {
-        AppRouter.shared.tab = .notes
-        AppRouter.shared.startVoiceNote = true
-        return .result()
-    }
-}
-
 struct LoopnoteShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(intent: StartMeetingIntent(),

@@ -62,25 +62,32 @@ enum MeetingTranscription {
 
     static func transcribe(_ url: URL, language: String) async throws -> String {
         if let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: language)) {
-            return try await withSpeechAnalyzer(url, locale: locale)
+            async let spans = SpeakerDiarization.speakers(in: url)
+            let pieces = try await withSpeechAnalyzer(url, locale: locale)
+            return SpeakerDiarization.label(pieces, with: await spans)
         }
         return try await withLegacyRecognizer(url, language: language)
     }
 
     /// iOS 26 SpeechAnalyzer: designed for long meetings and distant speakers.
-    private static func withSpeechAnalyzer(_ url: URL, locale: Locale) async throws -> String {
+    private static func withSpeechAnalyzer(_ url: URL, locale: Locale) async throws -> [SpeakerDiarization.Piece] {
         let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
         if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
             try await request.downloadAndInstall()
         }
         let analyzer = SpeechAnalyzer(modules: [transcriber])
         let collector = Task {
-            var paragraphs: [String] = []
+            var pieces: [SpeakerDiarization.Piece] = []
             for try await result in transcriber.results where result.isFinal {
                 let text = String(result.text.characters).trimmingCharacters(in: .whitespacesAndNewlines)
-                if !text.isEmpty { paragraphs.append(text) }
+                guard !text.isEmpty else { continue }
+                let start = result.range.start.seconds
+                let end = result.range.end.seconds
+                pieces.append(SpeakerDiarization.Piece(text: text,
+                                                       start: start.isFinite ? start : 0,
+                                                       end: end.isFinite ? end : 0))
             }
-            return paragraphs.joined(separator: "\n\n")
+            return pieces
         }
         let file = try AVAudioFile(forReading: url)
         if let last = try await analyzer.analyzeSequence(from: file) {

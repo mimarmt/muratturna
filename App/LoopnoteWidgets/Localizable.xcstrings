@@ -1,0 +1,166 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Record meeting": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toplantı kaydet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting aufnehmen"
+          }
+        }
+      }
+    },
+    "Start recording a meeting in Loopnote.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote'ta toplantı kaydını başlatır."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startet eine Meeting-Aufnahme in Loopnote."
+          }
+        }
+      }
+    },
+    "Voice note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesli not"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachnotiz"
+          }
+        }
+      }
+    },
+    "Dictate a living note in Loopnote.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote'ta canlı bir not dikte et."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diktiere eine lebendige Notiz in Loopnote."
+          }
+        }
+      }
+    },
+    "Recording meeting": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toplantı kaydediliyor"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting wird aufgenommen"
+          }
+        }
+      }
+    },
+    "Next note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıradaki not"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächste Notiz"
+          }
+        }
+      }
+    },
+    "Start meeting recording": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toplantı kaydını başlat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting-Aufnahme starten"
+          }
+        }
+      }
+    },
+    "Opens Loopnote and starts recording a meeting.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote'u açar ve toplantı kaydını başlatır."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet Loopnote und startet eine Meeting-Aufnahme."
+          }
+        }
+      }
+    },
+    "New voice note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni sesli not"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Sprachnotiz"
+          }
+        }
+      }
+    },
+    "Opens Loopnote and starts dictating a living note.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote'u açar ve canlı bir not için dikteyi başlatır."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet Loopnote und startet das Diktat einer lebendigen Notiz."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

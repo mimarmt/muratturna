@@ -12,6 +12,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.Key.quietEnd) private var quietEnd = 7 * 60 + 30
     @AppStorage(AppSettings.Key.usePersonalVoice) private var usePersonalVoice = false
     @AppStorage(AppSettings.Key.speechRate) private var speechRate = 0.5
+    @AppStorage(AppSettings.Key.nextNoteActivity) private var nextNoteActivity = true
 
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
 
@@ -78,6 +79,15 @@ struct SettingsView: View {
                 Text("Voice")
             } footer: {
                 Text("Personal Voice speaks English notes in your own voice. Create it in Settings › Accessibility › Personal Voice and allow apps to request it.")
+            }
+
+            Section {
+                Toggle(isOn: $nextNoteActivity) {
+                    Label("Next note on Lock Screen", systemImage: "platter.filled.bottom.iphone")
+                }
+                .onChange(of: nextNoteActivity) { _, _ in Task { await AlertScheduler.shared.reschedule() } }
+            } footer: {
+                Text("Shows a countdown to the next note on the Lock Screen and in the Dynamic Island when it speaks within 8 hours.")
             }
 
             Section("Notifications") {
