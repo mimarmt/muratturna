@@ -13,7 +13,7 @@ enum SpeakerDiarization {
     /// Models (~30 MB) are downloaded once on first use.
     static func speakers(in url: URL, timeout: Double) async -> [Span] {
         guard timeout > 0 else { return [] }
-        await withTaskGroup(of: [Span]?.self) { group in
+        return await withTaskGroup(of: [Span]?.self) { group in
             group.addTask { await diarize(url) }
             group.addTask {
                 try? await Task.sleep(for: .seconds(timeout))
