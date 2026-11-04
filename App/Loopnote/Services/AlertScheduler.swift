@@ -1,4 +1,5 @@
 import BackgroundTasks
+import CoreLocation
 import Foundation
 import SwiftData
 import UserNotifications
@@ -84,9 +85,15 @@ final class AlertScheduler {
         try? context.save()
 
         let byID = Dictionary(notes.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
-        let plan = AlertPlanner(quietHours: AppSettings.quietHours).plan(notes.map(\.plannable), now: now)
+        let placeNotes = Array(notes.filter { $0.hasLocation && $0.isActive }.prefix(LocationService.maxRegions))
+        let capacity = AlertPlanner.systemNotificationLimit - 4 - placeNotes.count
+        let plan = AlertPlanner(quietHours: AppSettings.quietHours, capacity: capacity)
+            .plan(notes.map(\.plannable), now: now)
 
         center.removeAllPendingNotificationRequests()
+        CriticalAlarms.cancelAll()
+        let alarmsAllowed = CriticalAlarms.isAuthorized
+        var alarmCount = 0
         var usedSounds = Set<String>()
 
         let awaiting = notes.filter { $0.isAwaitingConfirmation && !($0.project?.isMuted ?? false) }
@@ -146,12 +153,55 @@ final class AlertScheduler {
                 content.sound = .default
             }
 
+            // Critical notes ring as alarms (through Silent mode and Focus) instead of notifications.
+            if case .note(let id, _, true) = alert.kind, alarmsAllowed, alarmCount < CriticalAlarms.maxAlarms {
+                let file = await SpeechRenderer.shared.soundFile(for: spoken, language: language)
+                if let file { usedSounds.insert(file) }
+                if await CriticalAlarms.schedule(noteID: id, title: spoken, at: alert.date, soundFile: file) {
+                    alarmCount += 1
+                    continue
+                }
+            }
+
             let parts = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second],
                                                         from: alert.date)
             let request = UNNotificationRequest(
                 identifier: alert.id, content: content,
                 trigger: UNCalendarNotificationTrigger(dateMatching: parts, repeats: false))
             try? await center.add(request)
+        }
+
+        // Place reminders: iOS wakes them on region entry/exit, every time, until done.
+        for note in placeNotes {
+            guard let lat = note.locationLatitude, let lon = note.locationLongitude else { continue }
+            let content = UNMutableNotificationContent()
+            let spoken = note.textToSpeak
+            content.title = spoken
+            content.subtitle = note.locationName ?? note.project?.name ?? ""
+            if note.details != spoken { content.body = String(note.details.prefix(240)) }
+            content.categoryIdentifier = Self.noteCategory
+            content.threadIdentifier = note.project?.id.uuidString ?? "inbox"
+            content.userInfo = ["noteID": note.id.uuidString]
+            content.interruptionLevel = note.isCritical ? .timeSensitive : .active
+            if let photo = note.photoFileName, let url = PhotoStore.attachmentCopy(photo),
+               let attachment = try? UNNotificationAttachment(identifier: "photo", url: url) {
+                content.attachments = [attachment]
+            }
+            let language = note.languageCode ?? LanguageDetector.speechLanguage(for: spoken)
+            if let sound = await SpeechRenderer.shared.soundFile(for: spoken, language: language) {
+                content.sound = UNNotificationSound(named: UNNotificationSoundName(sound))
+                usedSounds.insert(sound)
+            } else {
+                content.sound = .default
+            }
+            let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: lat, longitude: lon),
+                                          radius: max(100, note.locationRadius),
+                                          identifier: "place.\(note.id.uuidString)")
+            region.notifyOnEntry = note.locationOnArrive
+            region.notifyOnExit = !note.locationOnArrive
+            try? await center.add(UNNotificationRequest(
+                identifier: "place.\(note.id.uuidString)", content: content,
+                trigger: UNLocationNotificationTrigger(region: region, repeats: true)))
         }
 
         // Morning follow-up for notes that spoke but were never marked done.

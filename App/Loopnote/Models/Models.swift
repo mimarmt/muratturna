@@ -40,6 +40,12 @@ final class Note {
     var snoozedUntil: Date?
     /// JPEG in Documents/Photos shown in the editor and as the notification thumbnail.
     var photoFileName: String?
+    /// Location reminder: speaks when arriving at (or leaving) this place, every time, until done.
+    var locationLatitude: Double?
+    var locationLongitude: Double?
+    var locationRadius: Double = 150
+    var locationName: String?
+    var locationOnArrive: Bool = true
     var project: Project?
 
     init(details: String, spokenTitle: String, schedule: NoteSchedule,
@@ -67,19 +73,24 @@ final class Note {
     /// Whether this note should currently speak.
     var isActive: Bool { !isCompleted && !(project?.isMuted ?? false) }
 
+    var hasLocation: Bool { locationLatitude != nil && locationLongitude != nil }
+
     var plannable: PlannableNote {
-        PlannableNote(id: id, schedule: schedule, isActive: isActive,
+        // Location notes are delivered by region triggers, not by the time planner.
+        PlannableNote(id: id, schedule: schedule, isActive: isActive && !hasLocation,
                       snoozedUntil: snoozedUntil, isCritical: isCritical)
     }
 
     func nextOccurrence(after date: Date = .now, calendar: Calendar = .current) -> Date? {
+        if hasLocation { return nil }
         if let s = snoozedUntil, s > date { return s }
         return schedule.occurrences(after: date, limit: 1, calendar: calendar).first?.date
     }
 
     /// The note has finished on its own (end date or count reached).
     func hasEnded(at date: Date = .now, calendar: Calendar = .current) -> Bool {
-        nextOccurrence(after: date, calendar: calendar) == nil
+        if hasLocation { return false }
+        return nextOccurrence(after: date, calendar: calendar) == nil
     }
 
     /// Its schedule has run out (end date, count or a one-time reminder that already spoke)

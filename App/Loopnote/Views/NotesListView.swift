@@ -204,9 +204,18 @@ struct NoteRow: View {
                     }
                 }
                 HStack(spacing: 6) {
-                    Image(systemName: "repeat")
-                    Text(ScheduleText.rule(note.schedule.rule))
-                    if let next = note.nextOccurrence() {
+                    if note.hasLocation {
+                        Image(systemName: "mappin.and.ellipse")
+                        Text(note.locationName ?? String(localized: "Chosen place"))
+                        Text("·")
+                        Text(note.locationOnArrive ? "on arrival" : "on leaving")
+                    } else {
+                        Image(systemName: "repeat")
+                        Text(ScheduleText.rule(note.schedule.rule))
+                    }
+                    if note.hasLocation {
+                        EmptyView()
+                    } else if let next = note.nextOccurrence() {
                         Text("·")
                         NextTimeLabel(date: next)
                     } else {

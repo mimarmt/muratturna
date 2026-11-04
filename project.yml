@@ -50,6 +50,9 @@ targets:
         NSMicrophoneUsageDescription: Loopnote uses the microphone so you can dictate notes.
         NSSpeechRecognitionUsageDescription: Loopnote turns your voice into text on your device.
         NSCameraUsageDescription: Loopnote uses the camera so you can add a photo to a note.
+        NSLocationWhenInUseUsageDescription: Loopnote reminds you when you arrive at or leave a place you choose.
+        NSAlarmKitUsageDescription: Critical notes ring as alarms so you hear them even in Silent mode.
+        NSSupportsLiveActivities: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.muratturna.loopnote

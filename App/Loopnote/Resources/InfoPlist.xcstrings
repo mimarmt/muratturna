@@ -92,6 +92,52 @@
           }
         }
       }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote reminds you when you arrive at or leave a place you choose."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote, seçtiğin bir yere vardığında veya oradan ayrıldığında sana hatırlatır."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote erinnert dich, wenn du an einem gewählten Ort ankommst oder ihn verlässt."
+          }
+        }
+      }
+    },
+    "NSAlarmKitUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Critical notes ring as alarms so you hear them even in Silent mode."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kritik notlar, sessiz moddayken bile duyabilmen için alarm olarak çalar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kritische Notizen klingeln als Wecker, damit du sie auch im Stumm-Modus hörst."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

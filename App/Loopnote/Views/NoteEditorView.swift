@@ -27,6 +27,12 @@ struct NoteEditorView: View {
     @State private var untilDate: Date
     @State private var count: Int
 
+    @State private var placeLat: Double?
+    @State private var placeLon: Double?
+    @State private var placeName: String
+    @State private var placeRadius: Double
+    @State private var placeOnArrive: Bool
+
     @State private var photoName: String?
     @State private var originalPhotoName: String?
     @State private var pickerItem: PhotosPickerItem?
@@ -41,7 +47,7 @@ struct NoteEditorView: View {
     @FocusState private var textFocused: Bool
 
     enum RepeatMode: String, CaseIterable, Identifiable {
-        case once, interval, daily, weekly
+        case once, interval, daily, weekly, location
         var id: Self { self }
         var label: LocalizedStringKey {
             switch self {
@@ -49,6 +55,7 @@ struct NoteEditorView: View {
             case .interval: "Every…"
             case .daily: "Daily"
             case .weekly: "Weekly"
+            case .location: "Place"
             }
         }
     }
@@ -100,7 +107,12 @@ struct NoteEditorView: View {
         case .daily(let t): mode = .daily; times = dates(t)
         case .weekly(let d, let t): mode = .weekly; weekdays = d; times = dates(t)
         }
-        _mode = State(initialValue: mode)
+        _mode = State(initialValue: note?.hasLocation == true ? .location : mode)
+        _placeLat = State(initialValue: note?.locationLatitude)
+        _placeLon = State(initialValue: note?.locationLongitude)
+        _placeName = State(initialValue: note?.locationName ?? "")
+        _placeRadius = State(initialValue: note?.locationRadius ?? 150)
+        _placeOnArrive = State(initialValue: note?.locationOnArrive ?? true)
         _intervalValue = State(initialValue: value)
         _intervalUnit = State(initialValue: unit)
         _times = State(initialValue: times)
@@ -327,8 +339,11 @@ struct NoteEditorView: View {
             case .weekly:
                 WeekdayPicker(selection: $weekdays)
                 timesEditor
+            case .location:
+                PlacePicker(latitude: $placeLat, longitude: $placeLon, name: $placeName,
+                            radius: $placeRadius, onArrive: $placeOnArrive)
             }
-            firstReminderRow
+            if mode != .location { firstReminderRow }
         }
     }
 
@@ -441,7 +456,7 @@ struct NoteEditorView: View {
                 }
             }
         }
-        .disabled(mode == .once)
+        .disabled(mode == .once || mode == .location)
     }
 
     private var optionsSection: some View {
@@ -453,10 +468,13 @@ struct NoteEditorView: View {
                 }
             }
             Toggle(isOn: $isCritical) {
-                Label("Critical", systemImage: "bell.badge")
+                Label("Critical", systemImage: "alarm")
+            }
+            .onChange(of: isCritical) { _, on in
+                if on { Task { _ = await CriticalAlarms.requestAuthorization() } }
             }
         } footer: {
-            Text("Critical notes break through Focus as time-sensitive alerts.")
+            Text("Critical notes ring as a full-screen alarm, even in Silent mode and Focus.")
         }
     }
 
@@ -464,6 +482,7 @@ struct NoteEditorView: View {
 
     private var canSave: Bool {
         (!details.isBlank || (photoName != nil && !spokenTitle.isBlank))
+            && (mode != .location || placeLat != nil)
             && rule.isValid && !(mode == .weekly && weekdays.isEmpty)
     }
 
@@ -473,22 +492,35 @@ struct NoteEditorView: View {
             return TimeOfDay(hour: c.hour ?? 9, minute: c.minute ?? 0)
         }
         switch mode {
-        case .once: return .once
+        case .once, .location: return .once
         case .interval: return .interval(minutes: intervalValue * intervalUnit.rawValue)
         case .daily: return .daily(times: tods)
         case .weekly: return .weekly(weekdays: weekdays, times: tods)
         }
     }
 
+    private func applyPlace(to note: Note) {
+        if mode == .location, let lat = placeLat, let lon = placeLon {
+            note.locationLatitude = lat
+            note.locationLongitude = lon
+            note.locationName = placeName.isBlank ? nil : placeName
+            note.locationRadius = placeRadius
+            note.locationOnArrive = placeOnArrive
+        } else {
+            note.locationLatitude = nil
+            note.locationLongitude = nil
+        }
+    }
+
     private var scheduleStart: Date {
         switch mode {
-        case .once, .interval: return start
+        case .once, .interval, .location: return start
         case .daily, .weekly: return note?.schedule.start ?? Calendar.current.startOfDay(for: .now)
         }
     }
 
     private var endCondition: EndCondition {
-        guard mode != .once else { return .never }
+        guard mode != .once && mode != .location else { return .never }
         switch endMode {
         case .never: return .never
         case .until:
@@ -526,10 +558,12 @@ struct NoteEditorView: View {
             note.snoozedUntil = nil
             if note.photoFileName != photoName { PhotoStore.delete(note.photoFileName) }
             note.photoFileName = photoName
+            applyPlace(to: note)
         } else {
             let new = Note(details: text, spokenTitle: title, schedule: schedule,
                            languageCode: language, isCritical: isCritical, project: project)
             new.photoFileName = photoName
+            applyPlace(to: new)
             context.insert(new)
         }
         try? context.save()
