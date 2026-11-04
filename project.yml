@@ -53,7 +53,7 @@ targets:
           [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown,
            UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         UIBackgroundModes: [fetch, audio]
-        BGTaskSchedulerPermittedIdentifiers: [com.muratturna.loopnote.replan]
+        BGTaskSchedulerPermittedIdentifiers: [com.muratturna.loopnote.replan, com.muratturna.loopnote.meeting.*]
         NSMicrophoneUsageDescription: Loopnote uses the microphone so you can dictate notes.
         NSSpeechRecognitionUsageDescription: Loopnote turns your voice into text on your device.
         NSCameraUsageDescription: Loopnote uses the camera so you can add a photo to a note.

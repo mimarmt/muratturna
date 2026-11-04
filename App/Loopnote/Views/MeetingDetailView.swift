@@ -87,16 +87,24 @@ struct MeetingDetailView: View {
 
     @ViewBuilder private var statusSection: some View {
         switch meeting.status {
-        case .recorded, .transcribing:
-            Section { ProgressRow(text: "Writing the transcript on your iPhone…") }
-        case .summarizing:
-            Section { ProgressRow(text: "Finding decisions and action items…") }
+        case .recorded, .transcribing, .summarizing:
+            Section {
+                ProgressRow(text: meeting.status == .summarizing ? "Finding decisions and action items…"
+                                                                   : "Writing the transcript on your iPhone…")
+                if !MeetingProcessor.shared.isProcessing(meeting.id) {
+                    // Interrupted (app was closed): offer to continue.
+                    Button("Continue processing") { MeetingProcessor.shared.retry(meeting) }
+                        .foregroundStyle(Theme.amber)
+                }
+            } footer: {
+                Text("You can leave the app. Processing continues and its progress appears on the Lock Screen.")
+            }
         case .failed:
             Section {
                 Label(meeting.errorMessage ?? String(localized: "Something went wrong."),
                       systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.red)
-                Button("Try again") { Task { await MeetingProcessor.shared.process(meeting) } }
+                Button("Try again") { MeetingProcessor.shared.retry(meeting) }
             }
         case .ready:
             EmptyView()

@@ -4146,6 +4146,70 @@
           }
         }
       }
+    },
+    "Writing meeting minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toplantı tutanağı yazılıyor"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting-Protokoll wird geschrieben"
+          }
+        }
+      }
+    },
+    "Transcribing…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yazıya dökülüyor…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird transkribiert …"
+          }
+        }
+      }
+    },
+    "Continue processing": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İşlemeye devam et"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verarbeitung fortsetzen"
+          }
+        }
+      }
+    },
+    "You can leave the app. Processing continues and its progress appears on the Lock Screen.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulamadan çıkabilirsin. İşlem devam eder, ilerlemesi kilit ekranında görünür."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst die App verlassen. Die Verarbeitung läuft weiter und der Fortschritt erscheint auf dem Sperrbildschirm."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

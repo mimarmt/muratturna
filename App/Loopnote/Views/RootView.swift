@@ -27,6 +27,7 @@ struct RootView: View {
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active {
+                MeetingProcessor.shared.resumePending()
                 Task { await AlertScheduler.shared.reschedule() }
             }
         }

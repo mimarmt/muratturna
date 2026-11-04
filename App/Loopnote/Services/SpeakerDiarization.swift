@@ -11,7 +11,20 @@ enum SpeakerDiarization {
 
     /// Returns speaker turns, or an empty array when diarization is unavailable.
     /// Models (~30 MB) are downloaded once on first use.
-    static func speakers(in url: URL) async -> [Span] {
+    static func speakers(in url: URL, timeout: Double) async -> [Span] {
+        await withTaskGroup(of: [Span]?.self) { group in
+            group.addTask { await diarize(url) }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(timeout))
+                return nil
+            }
+            let first = await group.next() ?? nil
+            group.cancelAll()
+            return first ?? []
+        }
+    }
+
+    private static func diarize(_ url: URL) async -> [Span] {
         do {
             let manager = OfflineDiarizerManager(config: .default)
             try await manager.prepareModels()
