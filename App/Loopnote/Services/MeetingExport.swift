@@ -9,8 +9,8 @@ enum MeetingExport {
     }
 
     static func durationText(_ m: Meeting) -> String {
-        Duration.seconds(m.duration.rounded()).formatted(
-            .units(allowed: m.duration < 60 ? [.seconds] : [.hours, .minutes], width: .abbreviated))
+        let units: Set<Duration.UnitsFormatStyle.Unit> = m.duration < 60 ? [.seconds] : [.hours, .minutes]
+        return Duration.seconds(m.duration.rounded()).formatted(.units(allowed: units, width: .abbreviated))
     }
 
     /// Plain text with WhatsApp-friendly *bold* headings.
