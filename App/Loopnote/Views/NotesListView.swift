@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import TipKit
 
 struct NotesListView: View {
     @Environment(\.modelContext) private var context
@@ -30,6 +31,9 @@ struct NotesListView: View {
 
     var body: some View {
         List {
+            TipView(ControlCenterTip())
+                .listRowSeparator(.hidden)
+                .tint(Theme.amber)
             if !awaiting.isEmpty {
                 Section {
                     ForEach(awaiting) { note in
@@ -128,6 +132,7 @@ struct NotesListView: View {
                         ActionLabel(title: "Speak", symbol: "mic.fill", wide: true)
                     }
                     .buttonStyle(.glassProminent)
+                    .popoverTip(SpeakTip(), arrowEdge: .bottom)
 
                     Button { AppRouter.shared.showMeetingRecorder = true } label: {
                         ActionLabel(title: "Meeting", symbol: "person.2.wave.2")

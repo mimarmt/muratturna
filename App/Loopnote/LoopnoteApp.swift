@@ -1,4 +1,5 @@
 import SwiftData
+import TipKit
 import SwiftUI
 import UIKit
 import UserNotifications
@@ -28,6 +29,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         AlertScheduler.shared.registerCategories()
         Theme.applyNavigationBarAppearance()
         WatchSync.shared.activate()
+        try? Tips.configure([.displayFrequency(.daily)])
         return true
     }
 }

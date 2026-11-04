@@ -1,4 +1,5 @@
 import PhotosUI
+import TipKit
 import SwiftData
 import SwiftUI
 import LoopnoteCore
@@ -567,6 +568,7 @@ struct NoteEditorView: View {
             context.insert(new)
         }
         try? context.save()
+        if note == nil { await ControlCenterTip.createdNote.donate() }
         await AlertScheduler.shared.reschedule()
         isSaving = false
         dismiss()

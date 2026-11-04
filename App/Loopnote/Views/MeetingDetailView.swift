@@ -1,6 +1,7 @@
 import AVFoundation
 import SwiftData
 import SwiftUI
+import TipKit
 import UIKit
 import LoopnoteCore
 
@@ -104,6 +105,7 @@ struct MeetingDetailView: View {
 
     private var actionsSection: some View {
         Section {
+            TipView(MeetingActionsTip()).tint(Theme.amber)
             ForEach(meeting.actions) { action in
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: action.noteID == nil ? "circle" : "bell.badge.fill")

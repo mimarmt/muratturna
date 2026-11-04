@@ -3858,6 +3858,102 @@
           }
         }
       }
+    },
+    "Just say it": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Söylemen yeter"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sag es einfach"
+          }
+        }
+      }
+    },
+    "Speak a note. Loopnote writes a short spoken title and reads it aloud when it is time.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notunu söyle. Loopnote kısa bir sesli başlık yazar ve zamanı gelince sesli okur."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprich eine Notiz. Loopnote schreibt einen kurzen gesprochenen Titel und liest ihn zur richtigen Zeit vor."
+          }
+        }
+      }
+    },
+    "Start from anywhere": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her yerden başlat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überall starten"
+          }
+        }
+      }
+    },
+    "Add “Voice note” or “Record meeting” to Control Center, the Lock Screen or the Action button.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“Sesli not” veya “Toplantı kaydet” butonunu Kontrol Merkezi'ne, kilit ekranına ya da yan tuşa ekle."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge „Sprachnotiz“ oder „Meeting aufnehmen“ zum Kontrollzentrum, Sperrbildschirm oder zur Aktionstaste hinzu."
+          }
+        }
+      }
+    },
+    "Never drop an action": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiçbir aksiyon kaybolmasın"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Aufgabe geht verloren"
+          }
+        }
+      }
+    },
+    "Tap Remind and the action speaks every morning until you mark it done.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hatırlat'a dokun, aksiyon tamamlanana kadar her sabah konuşsun."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe auf Erinnern, und die Aufgabe spricht jeden Morgen, bis du sie erledigst."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
