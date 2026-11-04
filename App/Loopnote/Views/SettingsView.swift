@@ -40,6 +40,8 @@ struct SettingsView: View {
                 Text("Notes due during quiet hours are read together when quiet hours end.")
             }
 
+            WhisperSection()
+
             ElevenLabsSection()
 
             Section {
@@ -440,4 +442,52 @@ private struct SharedVoicesView: View {
 extension AVSpeechSynthesizer {
     /// Shared synthesizer for voice previews in Settings.
     @MainActor static let previewSynth = AVSpeechSynthesizer()
+}
+
+/// Opt-in Whisper large-v3 for meeting transcripts (≈600 MB download, on device).
+private struct WhisperSection: View {
+    @AppStorage(AppSettings.Key.useWhisper) private var enabled = false
+    @State private var downloading = false
+    @State private var ready = WhisperService.isReady
+    @State private var error: String?
+
+    var body: some View {
+        Section {
+            Toggle(isOn: $enabled) {
+                Label("High-accuracy transcription", systemImage: "text.badge.checkmark")
+            }
+            .onChange(of: enabled) { _, on in
+                if on && !ready { Task { await download() } }
+            }
+            if enabled {
+                if downloading {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                        Text("Downloading the Whisper model (about 600 MB)…").foregroundStyle(.secondary)
+                    }
+                } else if ready {
+                    Label("Model installed", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                } else {
+                    Button("Download model") { Task { await download() } }
+                }
+            }
+            if let error { Text(error).font(.footnote).foregroundStyle(.red) }
+        } header: {
+            Text("Meetings")
+        } footer: {
+            Text("Uses OpenAI's Whisper large-v3 entirely on your iPhone for the most accurate Turkish, English and German meeting transcripts. Download over Wi-Fi; recordings never leave the device.")
+        }
+    }
+
+    private func download() async {
+        downloading = true
+        error = nil
+        defer { downloading = false }
+        do {
+            try await WhisperService.shared.prepare()
+            ready = true
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
 }

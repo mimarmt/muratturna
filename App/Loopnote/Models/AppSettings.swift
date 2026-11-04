@@ -14,6 +14,7 @@ enum AppSettings {
         static let onboarded = "onboarded"
         static let elevenEnabled = "eleven.enabled"
         static let nextNoteActivity = "activity.nextNote"
+        static let useWhisper = "transcription.whisper"
         static let elevenVoiceID = "eleven.voice.id"
         static let elevenVoiceName = "eleven.voice.name"
         static let elevenModel = "eleven.model"

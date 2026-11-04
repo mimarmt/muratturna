@@ -23,6 +23,9 @@ packages:
   FluidAudio:
     url: https://github.com/FluidInference/FluidAudio
     exactVersion: 0.18.2
+  ArgmaxOSS:
+    url: https://github.com/argmaxinc/argmax-oss-swift
+    exactVersion: 1.1.1
 
 targets:
   Loopnote:
@@ -34,6 +37,8 @@ targets:
     dependencies:
       - package: LoopnoteCore
       - package: FluidAudio
+      - package: ArgmaxOSS
+        product: WhisperKit
       - target: LoopnoteWidgets
       - target: LoopnoteWatch
     info:

@@ -186,6 +186,17 @@ enum MeetingTranscription {
     }
 
     static func transcribe(_ url: URL, language: String, duration: Double) async throws -> String {
+        // High-accuracy Whisper when the user turned it on and the model is installed.
+        if UserDefaults.standard.bool(forKey: AppSettings.Key.useWhisper), WhisperService.isReady {
+            await MeetingProcessor.shared.setStage(.transcribing)
+            async let spans = SpeakerDiarization.speakers(
+                in: url, timeout: duration >= 45 ? min(60, max(20, duration * 0.5)) : 0)
+            if let pieces = try? await WhisperService.shared.transcribe(url, language: language), !pieces.isEmpty {
+                if duration >= 45 { await MeetingProcessor.shared.setStage(.speakers) }
+                return SpeakerDiarization.label(pieces, with: await spans)
+            }
+            _ = await spans
+        }
         if let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: language)) {
             // Diarization is a bonus: skipped for short clips, time-limited for long ones,
             // and never allowed to hold up the transcript.
