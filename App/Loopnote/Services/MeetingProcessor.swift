@@ -49,15 +49,7 @@ final class MeetingProcessor {
         let id = meeting.id
         guard !inFlight.contains(id) else { return }
         let identifier = Self.taskPrefix + id.uuidString.replacingOccurrences(of: "-", with: "")
-        let registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
-            guard let task = task as? BGContinuedProcessingTask else { return }
-            nonisolated(unsafe) let bgTask = task
-            Task { @MainActor in
-                let ok = await MeetingProcessor.shared.run(id: id, task: bgTask)
-                bgTask.setTaskCompleted(success: ok)
-            }
-        }
-        if registered {
+        if Self.registerBackgroundTask(identifier: identifier, meetingID: id) {
             let request = BGContinuedProcessingTaskRequest(
                 identifier: identifier,
                 title: String(localized: "Writing meeting minutes"),
@@ -66,6 +58,20 @@ final class MeetingProcessor {
             if (try? BGTaskScheduler.shared.submit(request)) != nil { return }
         }
         Task { _ = await run(id: id, task: nil) }
+    }
+
+    /// The launch handler runs on a background queue, so it must not be created in a
+    /// main-actor context (Swift 6 would trap when iOS calls it).
+    nonisolated private static func registerBackgroundTask(identifier: String, meetingID: UUID) -> Bool {
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
+            guard let task = task as? BGContinuedProcessingTask else { return }
+            nonisolated(unsafe) let bgTask = task
+            bgTask.expirationHandler = { bgTask.progress.cancel() }
+            Task { @MainActor in
+                let ok = await MeetingProcessor.shared.run(id: meetingID, task: bgTask)
+                bgTask.setTaskCompleted(success: ok)
+            }
+        }
     }
 
     /// Restarts meetings left unfinished (app suspended or killed while processing).
@@ -79,7 +85,7 @@ final class MeetingProcessor {
 
     func isProcessing(_ id: UUID) -> Bool { inFlight.contains(id) }
 
-    private func run(id: UUID, task: BGContinuedProcessingTask?) async -> Bool {
+    func run(id: UUID, task: BGContinuedProcessingTask?) async -> Bool {
         guard !inFlight.contains(id) else { return false }
         let context = Persistence.container.mainContext
         guard let meeting = try? context.fetch(FetchDescriptor<Meeting>(predicate: #Predicate { $0.id == id })).first
@@ -89,10 +95,6 @@ final class MeetingProcessor {
         defer { inFlight.remove(id); currentTask = nil }
         task?.progress.totalUnitCount = 100
         task?.progress.completedUnitCount = 5
-        nonisolated(unsafe) let bg = task
-        task?.expirationHandler = {
-            Task { @MainActor in bg?.progress.cancel() }
-        }
         return await process(meeting, task: task)
     }
 
@@ -197,6 +199,18 @@ enum MeetingTranscription {
             await MeetingProcessor.shared.setStage(.speakers)
             return SpeakerDiarization.label(pieces, with: await spans)
         }
+        // Languages the long-form model lacks (e.g. Turkish): the on-device dictation model.
+        if let locale = await dictationLocale(for: language) {
+            guard duration >= 45 else {
+                let pieces = try await withDictation(url, locale: locale)
+                return SpeakerDiarization.label(pieces, with: [])
+            }
+            let limit = min(60, max(20, duration * 0.5))
+            async let spans = SpeakerDiarization.speakers(in: url, timeout: limit)
+            let pieces = try await withDictation(url, locale: locale)
+            await MeetingProcessor.shared.setStage(.speakers)
+            return SpeakerDiarization.label(pieces, with: await spans)
+        }
         return try await withLegacyRecognizer(url, language: language)
     }
 
@@ -240,8 +254,74 @@ enum MeetingTranscription {
         return try await collector.value
     }
 
-    /// Fallback for languages SpeechAnalyzer does not cover on this device.
+    private static func dictationLocale(for language: String) async -> Locale? {
+        let code = Locale(identifier: language).language.languageCode
+        let all = await DictationTranscriber.supportedLocales
+        return all.first { $0.identifier(.bcp47) == language }
+            ?? all.first { $0.language.languageCode == code }
+    }
+
+    private static func withDictation(_ url: URL, locale: Locale) async throws -> [SpeakerDiarization.Piece] {
+        let transcriber = DictationTranscriber(locale: locale, preset: .longDictation)
+        if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+            await MeetingProcessor.shared.setStage(.downloadingModel)
+            try await request.downloadAndInstall()
+        }
+        await MeetingProcessor.shared.setStage(.transcribing)
+        let analyzer = SpeechAnalyzer(modules: [transcriber])
+        let collector = Task {
+            var pieces: [SpeakerDiarization.Piece] = []
+            for try await result in transcriber.results where result.isFinal {
+                let text = String(result.text.characters).trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !text.isEmpty else { continue }
+                let start = result.range.start.seconds, end = result.range.end.seconds
+                pieces.append(SpeakerDiarization.Piece(text: text,
+                                                       start: start.isFinite ? start : 0,
+                                                       end: end.isFinite ? end : 0))
+            }
+            return pieces
+        }
+        let file = try AVAudioFile(forReading: url)
+        if let last = try await analyzer.analyzeSequence(from: file) {
+            try await analyzer.finalizeAndFinish(through: last)
+        } else {
+            try await analyzer.cancelAndFinishNow()
+        }
+        return try await collector.value
+    }
+
+    /// Last resort: the classic recognizer, fed 45-second slices so nothing past the
+    /// first minute is lost.
     private static func withLegacyRecognizer(_ url: URL, language: String) async throws -> String {
+        var parts: [String] = []
+        for slice in try slices(of: url, seconds: 45) {
+            defer { try? FileManager.default.removeItem(at: slice) }
+            let text = (try? await recognizeSlice(slice, language: language)) ?? ""
+            if !text.isBlank { parts.append(text) }
+        }
+        guard !parts.isEmpty else { throw Failure.unsupported }
+        return parts.joined(separator: "\n\n")
+    }
+
+    private static func slices(of url: URL, seconds: Double) throws -> [URL] {
+        let source = try AVAudioFile(forReading: url)
+        let format = source.processingFormat
+        let framesPerSlice = AVAudioFrameCount(format.sampleRate * seconds)
+        var urls: [URL] = []
+        while source.framePosition < source.length {
+            let count = min(framesPerSlice, AVAudioFrameCount(source.length - source.framePosition))
+            guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: count) else { break }
+            try source.read(into: buffer, frameCount: count)
+            let out = FileManager.default.temporaryDirectory.appendingPathComponent("slice-\(UUID().uuidString).caf")
+            let file = try AVAudioFile(forWriting: out, settings: format.settings,
+                                       commonFormat: format.commonFormat, interleaved: format.isInterleaved)
+            try file.write(from: buffer)
+            urls.append(out)
+        }
+        return urls
+    }
+
+    private static func recognizeSlice(_ url: URL, language: String) async throws -> String {
         guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: language)), recognizer.isAvailable else {
             throw Failure.unsupported
         }
