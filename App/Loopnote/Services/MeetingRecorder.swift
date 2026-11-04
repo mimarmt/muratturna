@@ -28,7 +28,7 @@ final class MeetingRecorder {
         let session = AVAudioSession.sharedInstance()
         do {
             try session.setCategory(.playAndRecord, mode: .default,
-                                    options: [.defaultToSpeaker, .allowBluetooth, .mixWithOthers])
+                                    options: [.defaultToSpeaker, .allowBluetoothHFP, .mixWithOthers])
             try session.setActive(true)
         } catch {
             errorMessage = error.localizedDescription
