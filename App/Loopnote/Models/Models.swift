@@ -104,6 +104,10 @@ final class Note {
 enum Persistence {
     static let container: ModelContainer = {
         let schema = Schema([Note.self, Project.self, Meeting.self])
+        if ProcessInfo.processInfo.arguments.contains("-uitest") {
+            let memory = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+            return try! ModelContainer(for: schema, configurations: [memory])
+        }
         let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
         StoreBackup.daily(storeURL: config.url)
         do {

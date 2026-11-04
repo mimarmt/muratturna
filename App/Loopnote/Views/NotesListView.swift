@@ -114,10 +114,12 @@ struct NotesListView: View {
                     Button { showProjects = true } label: { Label("Projects", systemImage: "square.stack") }
                     Button { showArchive = true } label: { Label("Archive", systemImage: "archivebox") }
                     Button { showSettings = true } label: { Label("Settings", systemImage: "gearshape") }
+                        .accessibilityIdentifier("menu.settings")
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
                 .accessibilityLabel("More")
+                .accessibilityIdentifier("menu.more")
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -127,17 +129,20 @@ struct NotesListView: View {
                         ActionLabel(title: "Write", symbol: "square.and.pencil")
                     }
                     .buttonStyle(.glass)
+                    .accessibilityIdentifier("action.write")
 
                     Button { compose(dictate: true) } label: {
                         ActionLabel(title: "Speak", symbol: "mic.fill", wide: true)
                     }
                     .buttonStyle(.glassProminent)
                     .popoverTip(SpeakTip(), arrowEdge: .bottom)
+                    .accessibilityIdentifier("action.speak")
 
                     Button { AppRouter.shared.showMeetingRecorder = true } label: {
                         ActionLabel(title: "Meeting", symbol: "person.2.wave.2")
                     }
                     .buttonStyle(.glass)
+                    .accessibilityIdentifier("action.meeting")
                 }
             }
             .padding(.bottom, 8)

@@ -4338,6 +4338,86 @@
           }
         }
       }
+    },
+    "Crash reports": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çökme raporları"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absturzberichte"
+          }
+        }
+      }
+    },
+    "Send %lld crash reports": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld çökme raporunu gönder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Absturzberichte senden"
+          }
+        }
+      }
+    },
+    "Delete crash reports": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çökme raporlarını sil"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absturzberichte löschen"
+          }
+        }
+      }
+    },
+    "Diagnostics": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teşhis"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose"
+          }
+        }
+      }
+    },
+    "If Loopnote ever crashes, iOS delivers a report here within a day. Share it so the cause can be fixed.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote çökerse iOS bir gün içinde raporu buraya getirir. Sebebin düzeltilebilmesi için paylaş."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falls Loopnote abstürzt, liefert iOS innerhalb eines Tages hier einen Bericht. Teile ihn, damit die Ursache behoben werden kann."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

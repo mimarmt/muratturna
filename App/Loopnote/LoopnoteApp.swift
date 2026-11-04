@@ -25,6 +25,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         AppSettings.registerDefaults()
+        if ProcessInfo.processInfo.arguments.contains("-uitest") {
+            UserDefaults.standard.set(true, forKey: AppSettings.Key.onboarded)
+        }
+        Diagnostics.shared.start()
         UNUserNotificationCenter.current().delegate = notificationDelegate
         AlertScheduler.shared.registerCategories()
         Theme.applyNavigationBarAppearance()

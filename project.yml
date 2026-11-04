@@ -128,11 +128,27 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SKIP_INSTALL: YES
 
+  LoopnoteUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: App/LoopnoteUITests
+    dependencies:
+      - target: Loopnote
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.muratturna.loopnote.uitests
+        CODE_SIGNING_ALLOWED: NO
+        TEST_TARGET_NAME: Loopnote
+
 schemes:
   Loopnote:
     build:
       targets:
         Loopnote: all
+    test:
+      targets:
+        - LoopnoteUITests
     run:
       config: Debug
     archive:

@@ -122,6 +122,22 @@ struct SettingsView: View {
             }
 
             Section {
+                let reports = Diagnostics.reports
+                if reports.isEmpty {
+                    LabeledContent("Crash reports", value: String(localized: "None"))
+                } else {
+                    ShareLink(items: reports) {
+                        Label("Send \(reports.count) crash reports", systemImage: "ladybug")
+                    }
+                    Button("Delete crash reports", role: .destructive) { Diagnostics.clear() }
+                }
+            } header: {
+                Text("Diagnostics")
+            } footer: {
+                Text("If Loopnote ever crashes, iOS delivers a report here within a day. Share it so the cause can be fixed.")
+            }
+
+            Section {
                 LabeledContent("Version", value: Bundle.main.versionString)
                 LabeledContent("On-device intelligence",
                                value: TitleSummarizer.isModelAvailable ? String(localized: "Available")
@@ -131,7 +147,11 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
-        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Done") { dismiss() }.accessibilityIdentifier("settings.done")
+            }
+        }
         .task { await refreshStatus() }
         .onDisappear { Task { await AlertScheduler.shared.reschedule() } }
     }

@@ -87,6 +87,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-${{ hashFiles('project.yml', 'Packages/**/Package.swift') }}-
             ${{ runner.os }}-xcode-
+      - name: Smoke tests (simulator)
+        run: |
+          set -o pipefail
+          ci/smoke-tests.sh
       - name: Install and verify API key
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
