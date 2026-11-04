@@ -85,28 +85,23 @@ struct NotesListView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            GlassEffectContainer(spacing: 16) {
-                HStack(spacing: 12) {
+            GlassEffectContainer(spacing: 14) {
+                HStack(spacing: 14) {
                     Button { composer = Composer(dictate: false) } label: {
-                        Label("Write", systemImage: "square.and.pencil")
-                            .padding(.horizontal, 2)
+                        ActionLabel(title: "Write", symbol: "square.and.pencil")
                     }
                     .buttonStyle(.glass)
 
                     Button { composer = Composer(dictate: true) } label: {
-                        Label("Speak", systemImage: "mic.fill")
-                            .font(.headline)
-                            .padding(.horizontal, 10)
+                        ActionLabel(title: "Speak", symbol: "mic.fill", wide: true)
                     }
                     .buttonStyle(.glassProminent)
 
                     Button { AppRouter.shared.showMeetingRecorder = true } label: {
-                        Label("Meeting", systemImage: "person.2.wave.2")
-                            .padding(.horizontal, 2)
+                        ActionLabel(title: "Meeting", symbol: "person.2.wave.2")
                     }
                     .buttonStyle(.glass)
                 }
-                .controlSize(.large)
             }
             .padding(.bottom, 8)
         }
@@ -213,5 +208,24 @@ struct NextTimeLabel: View {
                 Text(date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated)))
             }
         }
+    }
+}
+
+/// Icon-over-caption label for the bottom action bar; never wraps.
+struct ActionLabel: View {
+    let title: LocalizedStringKey
+    let symbol: String
+    var wide = false
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: symbol)
+                .font(wide ? .title2.weight(.semibold) : .title3)
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(width: wide ? 112 : 76, height: 52)
     }
 }
