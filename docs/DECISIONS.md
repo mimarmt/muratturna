@@ -33,6 +33,7 @@
 | 28 | Toplantı çıktısı | Tam tutanak: özet, kararlar, aksiyonlar (Loopnote hatırlatmasına dönüşür), konuşmacı ayrımlı metin, PDF; WhatsApp/Mail/Kopyala paylaşım |
 | 29 | Toplantı yapay zekâ işleme | Apple Private Cloud Compute (iOS 27), yedek cihaz içi parça parça özet; Claude sonradan Pro Plus |
 | 31 | Yol haritası | A: Fotoğraf → Konum → AlarmKit · B: Widget, Kontrol Merkezi, Live Activities · C: Konuşmacı ayrımı, Watch · D: iCloud, Pro, TipKit, veri güvenliği · E: App Store |
+| 32 | Toplantı yazıya dökme | Varsayılan Apple dikte motoru (Türkçe cihaz içi); isteğe bağlı Whisper large-v3 (~600 MB, cihaz içi, en yüksek doğruluk); FluidAudio konuşmacı ayrımı (45 sn üzeri) |
 | 21 | Uygulama ikonu | D · Cam Küre: Liquid Glass küre, amber ses dalgası, yayılan halkalar (`design/icons/final/`) |
 
 ## Teknoloji
