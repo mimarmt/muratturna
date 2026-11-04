@@ -27,6 +27,8 @@
 | 20 | Gelir modeli | Freemium: ücretsiz (10 aktif not, 2 proje) + Loopnote Pro (sınırsız not/proje, kritik notlar, Personal Voice, Watch, widget, Live Activities, iCloud). Fiyat: aylık $2.99, yıllık $19.99 (7 gün deneme), ömür boyu $49.99 |
 | 24 | Ses kalitesi | Apple Gelişmiş sesler + ses seçici; Kişisel Ses (yalnızca İngilizce) |
 | 25 | Doğal ses | ElevenLabs: test aşamasında kullanıcının kendi API anahtarı (Keychain); yayından önce sunucu proxy + Pro abonelik. Yalnızca sesli başlık gönderilir, ses cihazda saklanır |
+| 26 | v1.1 öncelikleri | Sırayla: Toplantı modu → Fotoğraflı not → Konum hatırlatma → AlarmKit |
+| 27 | Toplantı başlatma | Ana ekranda Toplantı butonu + Action Button + Kontrol Merkezi + Apple Watch |
 | 21 | Uygulama ikonu | D · Cam Küre: Liquid Glass küre, amber ses dalgası, yayılan halkalar (`design/icons/final/`) |
 
 ## Teknoloji
