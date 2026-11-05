@@ -23,8 +23,8 @@ final class LoopnoteSmokeTests: XCTestCase {
         XCTAssertTrue(write.waitForExistence(timeout: 20), "Main screen did not appear")
         write.tap()
 
-        let field = app.textViews.firstMatch.exists ? app.textViews.firstMatch : app.textFields.firstMatch
-        XCTAssertTrue(field.waitForExistence(timeout: 10), "Note editor did not open")
+        let field = app.descendants(matching: .any)["editor.details"]
+        XCTAssertTrue(field.waitForExistence(timeout: 15), "Note editor did not open")
         field.tap()
         field.typeText("Check the scaffolding at the site tomorrow at ten")
 

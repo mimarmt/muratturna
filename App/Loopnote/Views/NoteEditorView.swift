@@ -176,6 +176,7 @@ struct NoteEditorView: View {
         Section {
             TextField("What must you not forget?", text: $details, axis: .vertical)
                 .lineLimit(3...10)
+                .accessibilityIdentifier("editor.details")
                 .focused($textFocused)
             HStack {
                 Button {

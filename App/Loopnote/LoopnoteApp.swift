@@ -35,6 +35,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         WatchSync.shared.activate()
         ProStore.shared.start()
         MeetingProcessor.shared.prewarm()
+        if ProcessInfo.processInfo.arguments.contains("-uitest") { Tips.hideAllTipsForTesting() }
         try? Tips.configure([.displayFrequency(.daily)])
         return true
     }
