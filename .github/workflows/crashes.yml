@@ -1,0 +1,35 @@
+name: TestFlight crash reports
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "How many of the newest reports to show"
+        default: "3"
+
+permissions:
+  contents: read
+
+env:
+  ASC_KEY_ID: KTN24G5LBZ
+  ASC_ISSUER_ID: 55f74e1d-057f-4e6b-ac66-a8b5cac5ea0a
+
+jobs:
+  crashes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install and verify API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          python3 -m pip install --quiet pyjwt cryptography
+          python3 ci/install-asc-key.py
+      - name: Show crash point of the newest reports
+        env:
+          CRASH_LIMIT: ${{ inputs.limit }}
+        run: python3 ci/asc_crashes.py
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
