@@ -82,7 +82,10 @@ final class MeetingRecorder {
         LiveActivityController.endMeeting()
         self.recorder = nil
         state = .idle
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        // Deactivating can take seconds with Bluetooth headsets; never block the UI on it.
+        Task.detached(priority: .utility) {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        }
         return (fileName, max(duration, elapsed))
     }
 

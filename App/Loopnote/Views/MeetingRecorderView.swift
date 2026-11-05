@@ -147,8 +147,9 @@ struct MeetingRecorderView: View {
         try? context.save()
         AppRouter.shared.tab = .meetings
         AppRouter.shared.openMeetingID = meeting.id
-        MeetingProcessor.shared.start(meeting)
+        // Close the recorder first; processing starts on the next turn of the run loop.
         dismiss()
+        Task { MeetingProcessor.shared.start(meeting) }
     }
 }
 

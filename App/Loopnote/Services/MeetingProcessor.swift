@@ -42,35 +42,18 @@ final class MeetingProcessor {
         }
     }
 
-    /// Starts processing as a continued background task (iOS 26): it keeps running when the
-    /// app goes to the background, with progress shown by the system. Falls back to a
-    /// foreground task if the system declines the request.
+    /// Starts processing right away in the app. When the app goes to the background, iOS
+    /// grants extra time to finish; anything left over resumes the next time Loopnote opens.
+    ///
+    /// (BGContinuedProcessingTask was used here before: registering and submitting it runs
+    /// synchronously on the main thread and froze the app on "Finish" on iOS 27.)
     func start(_ meeting: Meeting) {
         let id = meeting.id
         guard !inFlight.contains(id) else { return }
-        let identifier = Self.taskPrefix + id.uuidString.replacingOccurrences(of: "-", with: "")
-        if Self.registerBackgroundTask(identifier: identifier, meetingID: id) {
-            let request = BGContinuedProcessingTaskRequest(
-                identifier: identifier,
-                title: String(localized: "Writing meeting minutes"),
-                subtitle: String(localized: "Transcribing…"))
-            request.strategy = .fail
-            if (try? BGTaskScheduler.shared.submit(request)) != nil { return }
-        }
-        Task { _ = await run(id: id, task: nil) }
-    }
-
-    /// The launch handler runs on a background queue, so it must not be created in a
-    /// main-actor context (Swift 6 would trap when iOS calls it).
-    nonisolated private static func registerBackgroundTask(identifier: String, meetingID: UUID) -> Bool {
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
-            guard let task = task as? BGContinuedProcessingTask else { return }
-            nonisolated(unsafe) let bgTask = task
-            bgTask.expirationHandler = { bgTask.progress.cancel() }
-            Task { @MainActor in
-                let ok = await MeetingProcessor.shared.run(id: meetingID, task: bgTask)
-                bgTask.setTaskCompleted(success: ok)
-            }
+        Task {
+            let background = UIApplication.shared.beginBackgroundTask(withName: "meeting-minutes")
+            _ = await run(id: id, task: nil)
+            if background != .invalid { UIApplication.shared.endBackgroundTask(background) }
         }
     }
 
