@@ -279,6 +279,7 @@ private struct ElevenLabsSection: View {
     @State private var voices: [ElevenLabsClient.Voice] = []
     @State private var loading = false
     @State private var error: String?
+    @AppStorage(AppSettings.Key.elevenLastError) private var lastError: String?
 
     var body: some View {
         Section {
@@ -354,6 +355,14 @@ private struct ElevenLabsSection: View {
                 }
                 if loading { ProgressView() }
                 if let error { Text(error).font(.footnote).foregroundStyle(.red) }
+                if enabled, error == nil, let lastError {
+                    Label {
+                        Text("Last note was read with the Apple voice: \(lastError)")
+                            .font(.footnote).foregroundStyle(.red)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+                    }
+                }
             }
         } header: {
             Text("Natural voice")
@@ -390,6 +399,7 @@ private struct ElevenLabsSection: View {
                 "Yarın saat onda belediyeye eksik evrakları götürmeyi unutma.",
                 voiceID: voiceID, model: model)
             error = nil
+            lastError = nil
         } catch {
             self.error = error.localizedDescription
         }

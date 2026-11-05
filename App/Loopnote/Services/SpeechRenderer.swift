@@ -36,9 +36,14 @@ final class SpeechRenderer {
         if FileManager.default.fileExists(atPath: url.path) { return name }
         do {
             try await ElevenLabsClient.render(text: text, voiceID: voice.id, model: voice.model, to: url)
+            AppSettings.elevenLastError = nil
             return name
         } catch {
+            // Falling back to the Apple voice silently made it look as if ElevenLabs was ignored;
+            // keep the reason so Settings can show it, and log it for the step log.
             try? FileManager.default.removeItem(at: url)
+            AppSettings.elevenLastError = error.localizedDescription
+            Trace.log("eleven: failed, Apple voice used – \(error.localizedDescription)")
             return nil
         }
     }

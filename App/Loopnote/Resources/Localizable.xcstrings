@@ -4930,6 +4930,54 @@
           }
         }
       }
+    },
+    "Last note was read with the Apple voice: %@": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son not Apple sesiyle okundu: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die letzte Notiz wurde mit der Apple-Stimme gelesen: %@"
+          }
+        }
+      }
+    },
+    "The ElevenLabs API key has no Text to Speech permission. Create a key with Text to Speech access.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs API anahtarında Text to Speech izni yok. Text to Speech erişimi olan bir anahtar oluştur."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der ElevenLabs-API-Schlüssel hat keine Text-to-Speech-Berechtigung. Erstelle einen Schlüssel mit Text-to-Speech-Zugriff."
+          }
+        }
+      }
+    },
+    "This ElevenLabs voice is no longer available. Choose another voice.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu ElevenLabs sesi artık kullanılamıyor. Başka bir ses seç."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese ElevenLabs-Stimme ist nicht mehr verfügbar. Wähle eine andere Stimme."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -18,6 +18,7 @@ enum AppSettings {
         static let elevenVoiceID = "eleven.voice.id"
         static let elevenVoiceName = "eleven.voice.name"
         static let elevenModel = "eleven.model"
+        static let elevenLastError = "eleven.lastError"
     }
 
     static func registerDefaults() {
@@ -48,6 +49,12 @@ enum AppSettings {
               ElevenLabsClient.apiKey != nil else { return nil }
         let model = d.string(forKey: Key.elevenModel) ?? ElevenLabsClient.Model.multilingualV2.rawValue
         return (id, model)
+    }
+
+    /// Why the last ElevenLabs render failed (the Apple voice was used instead); nil after a success.
+    static var elevenLastError: String? {
+        get { d.string(forKey: Key.elevenLastError) }
+        set { d.set(newValue, forKey: Key.elevenLastError) }
     }
 
     static func voiceKey(for language: String) -> String { "voice.id." + language.prefix(2) }

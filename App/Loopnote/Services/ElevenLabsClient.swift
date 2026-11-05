@@ -37,6 +37,10 @@ enum ElevenLabsClient {
             case .http(let code, let body):
                 if body.contains("paid_plan_required") || code == 402 {
                     String(localized: "This voice needs a paid ElevenLabs plan (Starter or higher).")
+                } else if body.contains("missing_permissions") {
+                    String(localized: "The ElevenLabs API key has no Text to Speech permission. Create a key with Text to Speech access.")
+                } else if body.contains("voice_not_found") || code == 404 {
+                    String(localized: "This ElevenLabs voice is no longer available. Choose another voice.")
                 } else if code == 401 {
                     String(localized: "The ElevenLabs API key is not valid or lacks permissions.")
                 } else if code == 429 || body.contains("quota") {
@@ -128,7 +132,9 @@ enum ElevenLabsClient {
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
         let (pcm, resp) = try await URLSession.shared.data(for: req)
         try check(resp, pcm)
-        try wav(pcm: pcm, sampleRate: sampleRate).write(to: url, options: .atomic)
+        // iOS plays the default "ding" instead of a notification sound longer than 30 seconds.
+        let maxBytes = Int(SpeechRenderer.maxSeconds * Double(sampleRate)) * 2
+        try wav(pcm: pcm.prefix(maxBytes), sampleRate: sampleRate).write(to: url, options: .atomic)
     }
 
     private static func check(_ resp: URLResponse, _ data: Data) throws {
