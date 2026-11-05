@@ -4786,6 +4786,22 @@
           }
         }
       }
+    },
+    "Processing stopped unexpectedly. Tap Try again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İşlem beklenmedik şekilde durdu. Yeniden Dene'ye dokun."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verarbeitung wurde unerwartet beendet. Tippe auf „Erneut versuchen“."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

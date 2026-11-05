@@ -39,7 +39,8 @@ enum MeetingSummarizer {
     static func minutes(for transcript: String, language: String) async -> MeetingMinutes {
         let languageName = Locale(identifier: "en").localizedString(forIdentifier: language) ?? language
         // iOS 27: Apple's larger server model (Private Cloud Compute) reads the whole meeting at once.
-        if #available(iOS 27.0, *), let pcc = await privateCloudMinutes(transcript, languageName: languageName) {
+        if privateCloudEnabled, #available(iOS 27.0, *),
+           let pcc = await privateCloudMinutes(transcript, languageName: languageName) {
             return pcc
         }
         guard TitleSummarizer.isModelAvailable else { return fallback(transcript) }
@@ -74,6 +75,11 @@ enum MeetingSummarizer {
             return fallback(transcript)
         }
     }
+
+    /// Private Cloud Compute needs a managed entitlement that Apple grants on request
+    /// (Small Business Program first). Without it the framework terminates the app, so the
+    /// call stays off until the entitlement is in the signing profile.
+    static let privateCloudEnabled = false
 
     @available(iOS 27.0, *)
     private static func privateCloudMinutes(_ transcript: String, languageName: String) async -> MeetingMinutes? {

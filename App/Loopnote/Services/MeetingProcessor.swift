@@ -79,8 +79,26 @@ final class MeetingProcessor {
         let context = Persistence.container.mainContext
         let pending = (try? context.fetch(FetchDescriptor<Meeting>())) ?? []
         for m in pending where [.recorded, .transcribing, .summarizing].contains(m.status) && !inFlight.contains(m.id) {
+            // A meeting whose processing ended with the app terminating twice is not retried
+            // automatically: that would close the app on every launch. The user can retry.
+            if Self.attempts(for: m.id) >= 2 {
+                m.status = .failed
+                m.errorMessage = String(localized: "Processing stopped unexpectedly. Tap Try again.")
+                Self.clearAttempts(for: m.id)
+                try? context.save()
+                continue
+            }
             Task { _ = await run(id: m.id, task: nil) }
         }
+    }
+
+    // MARK: Crash-loop guard
+
+    private static func attemptsKey(_ id: UUID) -> String { "meeting.attempts." + id.uuidString }
+    static func attempts(for id: UUID) -> Int { UserDefaults.standard.integer(forKey: attemptsKey(id)) }
+    static func clearAttempts(for id: UUID) { UserDefaults.standard.removeObject(forKey: attemptsKey(id)) }
+    private static func countAttempt(for id: UUID) {
+        UserDefaults.standard.set(attempts(for: id) + 1, forKey: attemptsKey(id))
     }
 
     func isProcessing(_ id: UUID) -> Bool { inFlight.contains(id) }
@@ -92,7 +110,10 @@ final class MeetingProcessor {
         else { return false }
         inFlight.insert(id)
         currentTask = task
-        defer { inFlight.remove(id); currentTask = nil }
+        // Counted before the work and cleared after it: a count left behind means the app
+        // was terminated while processing this meeting.
+        Self.countAttempt(for: id)
+        defer { inFlight.remove(id); currentTask = nil; Self.clearAttempts(for: id) }
         task?.progress.totalUnitCount = 100
         task?.progress.completedUnitCount = 5
         return await process(meeting, task: task)
@@ -152,6 +173,7 @@ final class MeetingProcessor {
 
     /// Public entry for "Try again".
     func retry(_ meeting: Meeting) {
+        Self.clearAttempts(for: meeting.id)
         meeting.status = .recorded
         meeting.errorMessage = nil
         start(meeting)
