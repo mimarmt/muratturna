@@ -59,8 +59,7 @@ enum SampleMeeting {
                               duration: duration, language: language)
         context.insert(meeting)
         try? context.save()
-        AppRouter.shared.tab = .meetings
-        AppRouter.shared.openMeetingID = meeting.id
+        AppRouter.shared.openMeeting(meeting.id)
         MeetingProcessor.shared.start(meeting)
         Trace.log("sample: processing started")
         return meeting

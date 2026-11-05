@@ -18,6 +18,8 @@ final class MeetingRecorder {
     private var recorder: AVAudioRecorder?
     private var meterTask: Task<Void, Never>?
     private(set) var fileName: String?
+    /// Closing the file after `stop()`; runs off the main thread.
+    private var finalized: Task<Void, Never>?
 
     func start() async -> Bool {
         errorMessage = nil
@@ -73,27 +75,45 @@ final class MeetingRecorder {
         LiveActivityController.updateMeeting(start: .now.addingTimeInterval(-elapsed), paused: false)
     }
 
-    /// Stops and returns the file name and duration.
+    /// Stops at once and returns the file name and duration. The UI never waits on the audio
+    /// system: `AVAudioRecorder.stop()` (which writes the end of the file) and deactivating the
+    /// audio session both run off the main thread. Await `finalized` before reading the file.
     func stop() -> (fileName: String, duration: TimeInterval)? {
         guard let recorder, let fileName else { return nil }
-        let duration = recorder.currentTime
-        recorder.stop()
+        let duration = max(recorder.currentTime, elapsed)
         meterTask?.cancel()
-        LiveActivityController.endMeeting()
+        meterTask = nil
         self.recorder = nil
         state = .idle
-        // Deactivating can take seconds with Bluetooth headsets; never block the UI on it.
-        Task.detached(priority: .utility) {
+        LiveActivityController.endMeeting()
+        nonisolated(unsafe) let r = recorder
+        finalized = Task.detached(priority: .userInitiated) {
+            Trace.log("recorder: closing file")
+            r.stop()
+            Trace.log("recorder: file closed")
             try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         }
-        return (fileName, max(duration, elapsed))
+        return (fileName, duration)
+    }
+
+    /// Finishes when the recording file is closed (or after `seconds`, whichever comes first),
+    /// so processing never hangs on a stuck audio system.
+    func waitUntilFinalized(seconds: Double = 5) async {
+        guard let finalized else { return }
+        _ = try? await withTimeout(seconds: seconds) { await finalized.value }
     }
 
     /// Stops and deletes the recording.
     func discard() {
         let name = fileName
         _ = stop()
-        if let name { try? FileManager.default.removeItem(at: Meeting.directory.appendingPathComponent(name)) }
+        let pending = finalized
+        if let name {
+            Task.detached(priority: .utility) {
+                await pending?.value
+                try? FileManager.default.removeItem(at: Meeting.directory.appendingPathComponent(name))
+            }
+        }
         fileName = nil
         elapsed = 0
     }

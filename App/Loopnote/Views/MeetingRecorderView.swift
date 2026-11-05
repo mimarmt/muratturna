@@ -12,6 +12,7 @@ struct MeetingRecorderView: View {
     @State private var language = LanguageDetector.fallback
     @State private var projectID: UUID?
     @State private var confirmDiscard = false
+    @State private var finishing = false
 
     var body: some View {
         NavigationStack {
@@ -133,11 +134,14 @@ struct MeetingRecorderView: View {
                         .frame(maxWidth: .infinity, minHeight: 64)
                 }
                 .buttonStyle(.glassProminent)
+                .disabled(finishing)
             }
         }
     }
 
     private func finish() {
+        guard !finishing else { return }
+        finishing = true
         Trace.log("recorder: finish tapped")
         guard let result = recorder.stop() else { dismiss(); return }
         Trace.log("recorder: stopped, \(Int(result.duration)) s")
@@ -147,12 +151,18 @@ struct MeetingRecorderView: View {
         meeting.project = projects.first { $0.id == projectID }
         context.insert(meeting)
         try? context.save()
-        AppRouter.shared.tab = .meetings
-        AppRouter.shared.openMeetingID = meeting.id
-        // Close the recorder first; processing starts on the next turn of the run loop.
+        AppRouter.shared.openMeeting(meeting.id)
+        // Close the recorder at once. Processing starts once the audio file is closed,
+        // which happens off the main thread and never holds up the screen.
         Trace.log("recorder: meeting saved, closing")
+        AppRouter.shared.showMeetingRecorder = false
         dismiss()
-        Task { MeetingProcessor.shared.start(meeting) }
+        let recorder = recorder
+        Task {
+            await recorder.waitUntilFinalized()
+            Trace.log("recorder: file closed, processing")
+            MeetingProcessor.shared.start(meeting)
+        }
     }
 }
 
