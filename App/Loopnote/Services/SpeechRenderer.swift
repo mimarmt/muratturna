@@ -7,6 +7,7 @@ import AVFoundation
 final class SpeechRenderer {
     static let shared = SpeechRenderer()
     nonisolated static let maxSeconds: Double = 29
+    private static let isUITest = ProcessInfo.processInfo.arguments.contains("-uitest")
 
     private let synthesizer = AVSpeechSynthesizer()
     private var player: AVAudioPlayer?
@@ -20,6 +21,9 @@ final class SpeechRenderer {
 
     /// Returns the file name (inside Library/Sounds) for the spoken text, rendering it if needed.
     func soundFile(for text: String, language: String) async -> String? {
+        // UI smoke tests run on a bare simulator whose speech service is slow to wake; they check
+        // the screens, not the audio, so notifications use the default sound there.
+        if Self.isUITest { return nil }
         if let eleven = await elevenLabsFile(for: text) { return eleven }
         return await appleSoundFile(for: text, language: language)
     }
@@ -42,19 +46,24 @@ final class SpeechRenderer {
     private func appleSoundFile(for text: String, language: String) async -> String? {
         let personal = AppSettings.usePersonalVoice
         let rate = AppSettings.speechRate
-        let voiceID = VoiceCatalog.voice(for: language, allowPersonal: personal)?.identifier
-        let key = "\(voiceID ?? language)|\(rate)|\(text)"
-        let name = "ln-\(Self.stableHash(key)).caf"
-        let url = Self.soundsDirectory.appendingPathComponent(name)
-        if FileManager.default.fileExists(atPath: url.path) { return name }
-
-        do {
-            try await Self.render(text: text, voiceIdentifier: voiceID, language: language, rate: rate, to: url)
-            return name
-        } catch {
-            try? FileManager.default.removeItem(at: url)
-            return nil
-        }
+        let directory = Self.soundsDirectory
+        // Listing voices and starting the synthesizer can block for seconds (first use, voice
+        // downloads), so all of it runs off the main thread and the UI stays responsive.
+        return await Task.detached(priority: .utility) { () -> String? in
+            let voiceID = VoiceCatalog.voice(for: language, allowPersonal: personal)?.identifier
+            let key = "\(voiceID ?? language)|\(rate)|\(text)"
+            let name = "ln-\(SpeechRenderer.stableHash(key)).caf"
+            let url = directory.appendingPathComponent(name)
+            if FileManager.default.fileExists(atPath: url.path) { return name }
+            do {
+                try await SpeechRenderer.render(text: text, voiceIdentifier: voiceID, language: language,
+                                                rate: rate, to: url)
+                return name
+            } catch {
+                try? FileManager.default.removeItem(at: url)
+                return nil
+            }
+        }.value
     }
 
     /// Speaks immediately (used by "Listen again" and previews).
