@@ -36,6 +36,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         ProStore.shared.start()
         MeetingProcessor.shared.prewarm()
         if ProcessInfo.processInfo.arguments.contains("-uitest") { Tips.hideAllTipsForTesting() }
+        // Used by CI to capture the App Review screenshot of the purchase screen.
+        if ProcessInfo.processInfo.arguments.contains("-paywall") { ProStore.shared.showPaywall = true }
         try? Tips.configure([.displayFrequency(.daily)])
         return true
     }

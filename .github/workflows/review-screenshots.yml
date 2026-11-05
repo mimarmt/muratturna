@@ -1,0 +1,48 @@
+name: Purchase review screenshots
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ASC_KEY_ID: KTN24G5LBZ
+  ASC_ISSUER_ID: 55f74e1d-057f-4e6b-ac66-a8b5cac5ea0a
+
+jobs:
+  screenshots:
+    runs-on: xcode-27
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/select-xcode.sh
+      - run: brew install xcodegen
+      - run: xcodegen generate
+      - name: Cache SwiftPM and build products
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            DerivedData
+          key: ${{ runner.os }}-xcode-${{ hashFiles('project.yml', 'Packages/**/Package.swift') }}-screenshots
+          restore-keys: |
+            ${{ runner.os }}-xcode-${{ hashFiles('project.yml', 'Packages/**/Package.swift') }}-
+            ${{ runner.os }}-xcode-
+      - name: Capture the purchase screen
+        run: ci/paywall-screenshot.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paywall
+          path: paywall.png
+      - name: Install and verify API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          python3 -m pip install --quiet --break-system-packages pyjwt cryptography || python3 -m pip install --quiet --user pyjwt cryptography
+          python3 ci/install-asc-key.py
+      - name: Upload review screenshots
+        run: python3 ci/asc_review_screenshots.py
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
