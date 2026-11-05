@@ -27,99 +27,107 @@ struct NotesListView: View {
 
     /// Spoke already, schedule ran out, not marked done yet.
     private var awaiting: [Note] { visible.filter(\.isAwaitingConfirmation) }
-    private var upcoming: [Note] { visible.filter { !$0.isAwaitingConfirmation } }
+    private var places: [Note] { visible.filter { $0.hasLocation } }
+    private var timed: [Note] { visible.filter { !$0.isAwaitingConfirmation && !$0.hasLocation } }
+    private var today: [Note] {
+        timed.filter { n in n.nextOccurrence().map { Calendar.current.isDateInToday($0) } ?? false }
+    }
+    private var later: [Note] {
+        timed.filter { n in !(n.nextOccurrence().map { Calendar.current.isDateInToday($0) } ?? false) }
+    }
+
+    @AppStorage("home.guide.dismissed") private var guideDismissed = false
 
     var body: some View {
         List {
+            if !guideDismissed || notes.isEmpty {
+                HowItWorksCard { withAnimation { guideDismissed = true } }
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
             TipView(ControlCenterTip())
                 .listRowSeparator(.hidden)
                 .tint(Theme.amber)
+
             if !awaiting.isEmpty {
                 Section {
                     ForEach(awaiting) { note in
                         HStack(spacing: 12) {
                             NoteRow(note: note)
                             Button { complete(note) } label: {
-                                Image(systemName: "checkmark.circle")
+                                Label("Done", systemImage: "checkmark.circle")
+                                    .labelStyle(.iconOnly)
                                     .font(.title2)
                                     .foregroundStyle(Theme.amber)
                             }
                             .buttonStyle(.borderless)
-                            .accessibilityLabel("Done")
                         }
-                        .contentShape(Rectangle())
-                        .onTapGesture { editing = note }
-                        .swipeActions(edge: .leading) {
-                            Button { complete(note) } label: { Label("Done", systemImage: "checkmark") }
-                                .tint(.green)
-                        }
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) { delete(note) } label: { Label("Delete", systemImage: "trash") }
-                        }
+                        .modifier(RowActions(note: note, editing: $editing,
+                                             complete: complete, delete: delete, snooze: nil, speak: speak))
                     }
                 } header: {
-                    Label("Said · not done yet", systemImage: "checkmark.bubble")
-                        .foregroundStyle(Theme.amber)
+                    SectionHeader(title: "Done?", subtitle: "Loopnote reminded you. Tap ✓ when it is finished.",
+                                  symbol: "checkmark.circle", tint: Theme.amber)
                 }
             }
-            ForEach(upcoming) { note in
-                NoteRow(note: note)
-                    .contentShape(Rectangle())
-                    .onTapGesture { editing = note }
-                    .swipeActions(edge: .leading) {
-                        Button { complete(note) } label: { Label("Done", systemImage: "checkmark") }
-                            .tint(.green)
+
+            if !today.isEmpty {
+                Section {
+                    ForEach(today) { note in
+                        NoteRow(note: note)
+                            .modifier(RowActions(note: note, editing: $editing,
+                                                 complete: complete, delete: delete, snooze: snooze, speak: speak))
                     }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) { delete(note) } label: { Label("Delete", systemImage: "trash") }
-                        Button { snooze(note) } label: { Label("Snooze 1 hour", systemImage: "clock") }
-                            .tint(.gray)
+                } header: {
+                    SectionHeader(title: "Today", subtitle: nil, symbol: "sun.max", tint: .secondary)
+                }
+            }
+
+            if !later.isEmpty {
+                Section {
+                    ForEach(later) { note in
+                        NoteRow(note: note)
+                            .modifier(RowActions(note: note, editing: $editing,
+                                                 complete: complete, delete: delete, snooze: snooze, speak: speak))
                     }
-                    .contextMenu {
-                        Button { speak(note) } label: { Label("Listen", systemImage: "speaker.wave.2") }
-                        Button { complete(note) } label: { Label("Done", systemImage: "checkmark") }
+                } header: {
+                    SectionHeader(title: "Coming up", subtitle: nil, symbol: "calendar", tint: .secondary)
+                }
+            }
+
+            if !places.isEmpty {
+                Section {
+                    ForEach(places) { note in
+                        NoteRow(note: note)
+                            .modifier(RowActions(note: note, editing: $editing,
+                                                 complete: complete, delete: delete, snooze: nil, speak: speak))
                     }
+                } header: {
+                    SectionHeader(title: "At a place", subtitle: nil, symbol: "mappin.and.ellipse", tint: .secondary)
+                }
             }
         }
-        .listStyle(.plain)
+        .listStyle(.insetGrouped)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            ProjectChips(projects: projects, selection: $projectFilter) { showProjects = true }
+        }
         .overlay {
-            if visible.isEmpty {
-                ContentUnavailableView {
-                    Label("No living notes yet", systemImage: "waveform")
-                } description: {
-                    Text("Tap Speak and say what you must not forget.")
-                }
+            if visible.isEmpty && !notes.isEmpty {
+                ContentUnavailableView("No notes in this project", systemImage: "square.stack",
+                                       description: Text("Choose “All” above or add a note to this project."))
             }
         }
         .navigationTitle("Loopnote")
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Menu {
-                    Picker("Project", selection: $projectFilter) {
-                        Text("All notes").tag(UUID?.none)
-                        ForEach(projects) { p in
-                            Label(p.name, systemImage: p.isMuted ? "speaker.slash" : "circle.fill")
-                                .tag(UUID?.some(p.id))
-                        }
-                    }
-                } label: {
-                    Image(systemName: projectFilter == nil
-                          ? "line.3.horizontal.decrease.circle"
-                          : "line.3.horizontal.decrease.circle.fill")
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button { showArchive = true } label: {
+                    Label("Archive", systemImage: "archivebox")
                 }
-                .accessibilityLabel("Filter by project")
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button { showProjects = true } label: { Label("Projects", systemImage: "square.stack") }
-                    Button { showArchive = true } label: { Label("Archive", systemImage: "archivebox") }
-                    Button { showSettings = true } label: { Label("Settings", systemImage: "gearshape") }
-                        .accessibilityIdentifier("menu.settings")
-                } label: {
-                    Image(systemName: "ellipsis.circle")
+                .accessibilityIdentifier("toolbar.archive")
+                Button { showSettings = true } label: {
+                    Label("Settings", systemImage: "gearshape")
                 }
-                .accessibilityLabel("More")
-                .accessibilityIdentifier("menu.more")
+                .accessibilityIdentifier("toolbar.settings")
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -244,7 +252,7 @@ struct NoteRow: View {
                 }
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .lineLimit(2)
             }
             if let name = note.photoFileName, let image = PhotoStore.thumbnail(name) {
                 Spacer(minLength: 0)
@@ -270,14 +278,23 @@ struct NextTimeLabel: View {
             let quiet = AppSettings.quietHours
             if quiet.contains(date, calendar: .current) {
                 let wake = quiet.windowEnd(after: date, calendar: .current)
-                Label(wake.formatted(date: .omitted, time: .shortened), systemImage: "moon.fill")
+                Label("Next: \(Self.when(wake)) (morning summary)", systemImage: "moon.fill")
                     .labelStyle(.titleAndIcon)
             } else if date.timeIntervalSince(context.date) < 60 {
-                Text("now")
+                Text("Next: now")
             } else {
-                Text(date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated)))
+                Text("Next: \(Self.when(date)) (\(date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated))))")
             }
         }
+    }
+
+    /// "14:30", "tomorrow 09:00" or "Fri 10:00".
+    static func when(_ date: Date) -> String {
+        let cal = Calendar.current
+        let time = date.formatted(date: .omitted, time: .shortened)
+        if cal.isDateInToday(date) { return time }
+        if cal.isDateInTomorrow(date) { return String(localized: "tomorrow") + " " + time }
+        return date.formatted(.dateTime.weekday(.abbreviated)) + " " + time
     }
 }
 
@@ -297,5 +314,139 @@ struct ActionLabel: View {
                 .minimumScaleFactor(0.8)
         }
         .frame(width: wide ? 112 : 76, height: 52)
+    }
+}
+
+// MARK: - Home building blocks
+
+/// Tap to edit, swipe for Done / Delete / Snooze, long-press to listen.
+private struct RowActions: ViewModifier {
+    let note: Note
+    @Binding var editing: Note?
+    let complete: (Note) -> Void
+    let delete: (Note) -> Void
+    let snooze: ((Note) -> Void)?
+    let speak: (Note) -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .contentShape(Rectangle())
+            .onTapGesture { editing = note }
+            .swipeActions(edge: .leading) {
+                Button { complete(note) } label: { Label("Done", systemImage: "checkmark") }
+                    .tint(.green)
+            }
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) { delete(note) } label: { Label("Delete", systemImage: "trash") }
+                if let snooze {
+                    Button { snooze(note) } label: { Label("Snooze 1 hour", systemImage: "clock") }
+                        .tint(.gray)
+                }
+            }
+            .contextMenu {
+                Button { speak(note) } label: { Label("Listen", systemImage: "speaker.wave.2") }
+                Button { editing = note } label: { Label("Edit", systemImage: "pencil") }
+                Button { complete(note) } label: { Label("Done", systemImage: "checkmark") }
+            }
+    }
+}
+
+private struct SectionHeader: View {
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey?
+    let symbol: String
+    let tint: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Label(title, systemImage: symbol)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(tint)
+            if let subtitle {
+                Text(subtitle).font(.caption).foregroundStyle(.secondary).textCase(nil)
+            }
+        }
+        .textCase(nil)
+    }
+}
+
+/// Horizontal project filter: All · projects · + Project.
+private struct ProjectChips: View {
+    let projects: [Project]
+    @Binding var selection: UUID?
+    var addProject: () -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                chip(title: String(localized: "All"), color: nil, selected: selection == nil) { selection = nil }
+                ForEach(projects) { p in
+                    chip(title: p.name, color: Color(hex: p.colorHex), selected: selection == p.id,
+                         muted: p.isMuted) { selection = selection == p.id ? nil : p.id }
+                }
+                Button(action: addProject) {
+                    Label("Project", systemImage: "plus")
+                        .font(.subheadline.weight(.medium))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                }
+                .buttonStyle(.glass)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 6)
+        }
+    }
+
+    private func chip(title: String, color: Color?, selected: Bool, muted: Bool = false,
+                      action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                if let color { Circle().fill(color).frame(width: 8, height: 8) }
+                Text(title).lineLimit(1)
+                if muted { Image(systemName: "speaker.slash").font(.caption2) }
+            }
+            .font(.subheadline.weight(selected ? .semibold : .regular))
+            .padding(.horizontal, 12).padding(.vertical, 7)
+            .foregroundStyle(selected ? Color.black : Color.primary)
+            .background(Capsule().fill(selected ? Theme.amber : Color.secondary.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+/// Three-step explanation for new users; can be dismissed.
+private struct HowItWorksCard: View {
+    var dismiss: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("How Loopnote works").font(Theme.title(.headline))
+                Spacer()
+                Button(action: dismiss) { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Close")
+            }
+            Step(number: 1, symbol: "mic.fill", text: "Speak or write what you must not forget.")
+            Step(number: 2, symbol: "repeat", text: "Choose how often, or a place, to be reminded.")
+            Step(number: 3, symbol: "speaker.wave.2.fill", text: "When it is time, the note says itself out loud.")
+            Step(number: 4, symbol: "checkmark.circle", text: "When it is finished, tap Done. Until then it keeps reminding you.")
+        }
+        .padding(18)
+        .background(RoundedRectangle(cornerRadius: 22).fill(Theme.amber.opacity(0.12)))
+    }
+
+    private struct Step: View {
+        let number: Int
+        let symbol: String
+        let text: LocalizedStringKey
+        var body: some View {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: symbol)
+                    .frame(width: 26)
+                    .foregroundStyle(Theme.amber)
+                Text(text).font(.subheadline)
+            }
+        }
     }
 }

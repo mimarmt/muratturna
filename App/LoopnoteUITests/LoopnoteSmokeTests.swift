@@ -35,8 +35,7 @@ final class LoopnoteSmokeTests: XCTestCase {
             .firstMatch.waitForExistence(timeout: 30), "Saved note is not listed")
 
         // Settings
-        app.buttons["menu.more"].tap()
-        app.buttons["menu.settings"].tap()
+        app.buttons["toolbar.settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Settings did not open")
         app.buttons["settings.done"].tap()
 
