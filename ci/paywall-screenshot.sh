@@ -24,5 +24,11 @@ xcrun simctl status_bar "$SIM" override --time 9:41 --batteryState charged --bat
 xcrun simctl install "$SIM" DerivedData/Build/Products/Debug-iphonesimulator/Loopnote.app
 xcrun simctl launch "$SIM" com.muratturna.loopnote -uitest -paywall -AppleLanguages "(en)" -AppleLocale en_US
 sleep 15
-xcrun simctl io "$SIM" screenshot paywall.png
+# Newer simulators can expose more than one display; take the primary phone screen.
+if ! xcrun simctl io "$SIM" screenshot paywall.png 2> shot.err; then
+  cat shot.err
+  DISPLAY_ID=$(grep -E -- '--display=[0-9]+ +LCD \(primary\)' shot.err | sed -E 's/.*--display=([0-9]+).*/\1/' | head -1)
+  DISPLAY_ID=${DISPLAY_ID:-$(grep -oE -- '--display=[0-9]+' shot.err | head -1 | cut -d= -f2)}
+  xcrun simctl io "$SIM" screenshot --display="$DISPLAY_ID" paywall.png
+fi
 ls -l paywall.png
