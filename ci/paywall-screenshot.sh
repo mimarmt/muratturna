@@ -7,7 +7,8 @@ import sys, json, re
 devs = json.load(sys.stdin)['devices']
 ios = sorted((k for k in devs if 'iOS' in k), key=lambda k: [int(x) for x in re.findall(r'\d+', k)])
 for runtime in reversed(ios):
-    phones = [d for d in devs[runtime] if d['name'].startswith('iPhone') and 'Pro' in d['name'] and 'Max' not in d['name']] \
+    # A classic single-screen model such as "iPhone 17 Pro" gives a standard screenshot.
+    phones = [d for d in devs[runtime] if re.fullmatch(r'iPhone \d+ Pro', d['name'])] \
              or [d for d in devs[runtime] if d['name'].startswith('iPhone')]
     if phones:
         print(phones[-1]['udid']); break
