@@ -31,7 +31,7 @@ final class LoopnoteSmokeTests: XCTestCase {
         let save = app.buttons["Save"]
         XCTAssertTrue(save.waitForExistence(timeout: 5))
         save.tap()
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'scaffolding'"))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'scaffolding'"))
             .firstMatch.waitForExistence(timeout: 30), "Saved note is not listed")
 
         // Settings

@@ -114,38 +114,21 @@ final class SpeechRenderer {
         utterance.postUtteranceDelay = 0.2
         let state = WriteState()
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            // A voice that is missing or still downloading may never deliver the final empty
+            // buffer; never let one sound hold up scheduling.
+            DispatchQueue.global().asyncAfter(deadline: .now() + 20) {
+                state.finish { cont.resume(throwing: CancellationError()) }
+            }
             synthesizer.write(utterance) { buffer in
-                guard !state.finished else { return }
                 guard let pcm = buffer as? AVAudioPCMBuffer else { return }
                 if pcm.frameLength == 0 {
-                    state.finished = true
-                    state.file = nil // closes the file
-                    cont.resume()
+                    state.finish { cont.resume() }
                     return
                 }
                 do {
-                    if state.file == nil {
-                        let settings: [String: Any] = [
-                            AVFormatIDKey: kAudioFormatLinearPCM,
-                            AVSampleRateKey: pcm.format.sampleRate,
-                            AVNumberOfChannelsKey: pcm.format.channelCount,
-                            AVLinearPCMBitDepthKey: 16,
-                            AVLinearPCMIsFloatKey: false,
-                            AVLinearPCMIsBigEndianKey: false
-                        ]
-                        state.file = try AVAudioFile(forWriting: url, settings: settings,
-                                                     commonFormat: pcm.format.commonFormat,
-                                                     interleaved: pcm.format.isInterleaved)
-                    }
-                    let limit = AVAudioFramePosition(pcm.format.sampleRate * maxSeconds)
-                    if state.frames + AVAudioFramePosition(pcm.frameLength) <= limit {
-                        try state.file?.write(from: pcm)
-                        state.frames += AVAudioFramePosition(pcm.frameLength)
-                    }
+                    try state.write(pcm, to: url)
                 } catch {
-                    state.finished = true
-                    state.file = nil
-                    cont.resume(throwing: error)
+                    state.finish { cont.resume(throwing: error) }
                 }
             }
         }
@@ -162,7 +145,41 @@ final class SpeechRenderer {
 
 /// Mutable render state shared with the synthesizer's callback queue (accessed serially).
 private final class WriteState: @unchecked Sendable {
-    var file: AVAudioFile?
-    var frames: AVAudioFramePosition = 0
-    var finished = false
+    private let lock = NSLock()
+    private var file: AVAudioFile?
+    private var frames: AVAudioFramePosition = 0
+    private var finished = false
+
+    func write(_ pcm: AVAudioPCMBuffer, to url: URL) throws {
+        lock.lock(); defer { lock.unlock() }
+        guard !finished else { return }
+        if file == nil {
+            let settings: [String: Any] = [
+                AVFormatIDKey: kAudioFormatLinearPCM,
+                AVSampleRateKey: pcm.format.sampleRate,
+                AVNumberOfChannelsKey: pcm.format.channelCount,
+                AVLinearPCMBitDepthKey: 16,
+                AVLinearPCMIsFloatKey: false,
+                AVLinearPCMIsBigEndianKey: false
+            ]
+            file = try AVAudioFile(forWriting: url, settings: settings,
+                                   commonFormat: pcm.format.commonFormat,
+                                   interleaved: pcm.format.isInterleaved)
+        }
+        let limit = AVAudioFramePosition(pcm.format.sampleRate * SpeechRenderer.maxSeconds)
+        if frames + AVAudioFramePosition(pcm.frameLength) <= limit {
+            try file?.write(from: pcm)
+            frames += AVAudioFramePosition(pcm.frameLength)
+        }
+    }
+
+    /// Runs `resume` exactly once, after closing the file.
+    func finish(_ resume: () -> Void) {
+        lock.lock()
+        guard !finished else { lock.unlock(); return }
+        finished = true
+        file = nil
+        lock.unlock()
+        resume()
+    }
 }

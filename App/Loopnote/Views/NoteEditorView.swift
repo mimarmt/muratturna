@@ -577,10 +577,14 @@ struct NoteEditorView: View {
             context.insert(new)
         }
         try? context.save()
-        if note == nil { await ControlCenterTip.createdNote.donate() }
-        await AlertScheduler.shared.reschedule()
+        let isNew = note == nil
         isSaving = false
         dismiss()
+        // Close at once; spoken sounds are rendered and scheduled in the background.
+        Task {
+            if isNew { await ControlCenterTip.createdNote.donate() }
+            await AlertScheduler.shared.reschedule()
+        }
     }
 }
 

@@ -11,9 +11,35 @@ for runtime in reversed(ios):
         print(phones[-1]['udid']); break
 ")
 echo "Simulator: $SIM"
+RESULT=DerivedData/smoke.xcresult
+rm -rf "$RESULT"
+set +e
 xcodebuild test \
   -project Loopnote.xcodeproj -scheme Loopnote \
   -destination "id=$SIM" \
   -derivedDataPath DerivedData \
+  -resultBundlePath "$RESULT" \
   -skipPackagePluginValidation \
   CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
+STATUS=${PIPESTATUS[0]}
+set -e
+if [ "$STATUS" -ne 0 ] && [ -d "$RESULT" ]; then
+  echo "::group::Test activities (what the test did, step by step)"
+  TEST_ID=$(xcrun xcresulttool get test-results tests --path "$RESULT" | python3 -c "
+import sys, json
+def walk(n):
+    if n.get('nodeType') == 'Test Case': print(n.get('nodeIdentifier', '')); return
+    for c in n.get('children', []): walk(c)
+for n in json.load(sys.stdin).get('testNodes', []): walk(n)
+" | head -1 || true)
+  xcrun xcresulttool get test-results activities --test-id "$TEST_ID" --path "$RESULT" | python3 -c "
+import sys, json
+def walk(a, d=0):
+    print('  ' * d + a.get('title', ''))
+    for c in a.get('childActivities', []): walk(c, d + 1)
+for run in json.load(sys.stdin).get('testRuns', []):
+    for a in run.get('activities', []): walk(a)
+" || true
+  echo "::endgroup::"
+fi
+exit "$STATUS"
