@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import WatchConnectivity
+import WidgetKit
 import LoopnoteCore
 
 /// Sends the active notes to Apple Watch and applies actions coming back from it.
@@ -16,9 +17,6 @@ final class WatchSync: NSObject, WCSessionDelegate {
 
     /// Latest-state snapshot (replaces the previous one on the watch).
     func send(_ notes: [Note]) {
-        let session = WCSession.default
-        guard WCSession.isSupported(), session.activationState == .activated,
-              session.isPaired, session.isWatchAppInstalled else { return }
         let snapshot = notes
             .filter { $0.isActive }
             .sorted { ($0.nextOccurrence() ?? .distantFuture) < ($1.nextOccurrence() ?? .distantFuture) }
@@ -29,6 +27,13 @@ final class WatchSync: NSObject, WCSessionDelegate {
                           next: n.nextOccurrence(), isCritical: n.isCritical,
                           awaitingDone: n.isAwaitingConfirmation)
             }
+        // Home Screen and Lock Screen widgets read the same snapshot from the App Group.
+        SharedNotes.save(Array(snapshot.prefix(10)))
+        WidgetCenter.shared.reloadTimelines(ofKind: SharedNotes.widgetKind)
+
+        let session = WCSession.default
+        guard WCSession.isSupported(), session.activationState == .activated,
+              session.isPaired, session.isWatchAppInstalled else { return }
         try? session.updateApplicationContext(WatchMessage.snapshot(Array(snapshot)).payload)
     }
 

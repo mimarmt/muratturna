@@ -6,6 +6,7 @@ import WidgetKit
 @main
 struct LoopnoteWidgetsBundle: WidgetBundle {
     var body: some Widget {
+        NotesWidget()
         StartMeetingControl()
         VoiceNoteControl()
         LoopnoteLiveActivity()

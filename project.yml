@@ -41,6 +41,10 @@ targets:
         product: WhisperKit
       - target: LoopnoteWidgets
       - target: LoopnoteWatch
+    entitlements:
+      path: App/Loopnote/Loopnote.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.muratturna.loopnote]
     info:
       path: App/Loopnote/Info.plist
       properties:
@@ -83,6 +87,10 @@ targets:
     sources:
       - path: App/LoopnoteWidgets
       - path: App/Shared
+    entitlements:
+      path: App/LoopnoteWidgets/LoopnoteWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.muratturna.loopnote]
     info:
       path: App/LoopnoteWidgets/Info.plist
       properties:

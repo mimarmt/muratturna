@@ -160,6 +160,118 @@
           }
         }
       }
+    },
+    "Next notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıradaki notlar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächste Notizen"
+          }
+        }
+      }
+    },
+    "The notes Loopnote will read to you next.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote'un sana sıradaki okuyacağı notlar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Notizen, die Loopnote dir als Nächstes vorliest."
+          }
+        }
+      }
+    },
+    "No notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yok"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Notizen"
+          }
+        }
+      }
+    },
+    "Add a note in Loopnote and it will appear here.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote'a bir not ekle, burada görünsün."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge in Loopnote eine Notiz hinzu, dann erscheint sie hier."
+          }
+        }
+      }
+    },
+    "Done?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitti mi?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erledigt?"
+          }
+        }
+      }
+    },
+    "Call the municipality about the permit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruhsat için belediyeyi ara"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wegen der Genehmigung beim Bauamt anrufen"
+          }
+        }
+      }
+    },
+    "Send the facade renders": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cephe görsellerini gönder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fassadenrenderings senden"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
