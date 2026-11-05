@@ -47,6 +47,10 @@
 - AVSpeechSynthesizer + Personal Voice: seslendirme, ses dosyasına render
 - User Notifications (özel ses ≤ 30 sn), AlarmKit (kritik notlar), Background Tasks (64 bildirim sınırı yönetimi)
 - ActivityKit (Live Activities / Dynamic Island), WidgetKit, Controls, Action Button
+- Widget "Sıradaki notlar": uygulama her yeniden planlamada notların küçük bir özetini App Group'a
+  (`group.com.muratturna.loopnote`) yazar, widget yalnızca okur; SwiftData deposu yerinde kalır
+- iCloud senkronu: App ID'de iCloud/CloudKit açık; TestFlight/App Store derlemeleri senkron için
+  CloudKit şemasının bir kez Production'a yayınlanmasını bekler (Xcode'lu geliştirme derlemesi gerekir)
 - App Intents (Siri, Shortcuts, Spotlight entity schemas, View Annotations)
 - watchOS uygulaması, Core Haptics
 - TipKit, StoreKit 2, MetricKit, Evaluations, AppIntentsTesting, erişilebilirlik
@@ -58,6 +62,7 @@
 - App Store Connect API: Key ID `KTN24G5LBZ` (Admin, "Loopnote CI"), Issuer ID `55f74e1d-057f-4e6b-ac66-a8b5cac5ea0a`
 - Özel anahtar yalnızca GitHub Secret olarak: `ASC_KEY_P8`
 - Bundle ID: `com.muratturna.loopnote`
+- Smoke testler (simülatör) her TestFlight derlemesinden önce çalışır; simülatör test öncesi açılıp hazır beklenir
 
 ## Doğrulanacaklar
 
