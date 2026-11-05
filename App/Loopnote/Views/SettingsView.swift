@@ -6,6 +6,8 @@ import UserNotifications
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.modelContext) private var context
+    @State private var creatingSample = false
 
     @AppStorage(AppSettings.Key.quietEnabled) private var quietEnabled = true
     @AppStorage(AppSettings.Key.quietStart) private var quietStart = 23 * 60
@@ -131,10 +133,24 @@ struct SettingsView: View {
                     }
                     Button("Delete crash reports", role: .destructive) { Diagnostics.clear() }
                 }
+                Button {
+                    creatingSample = true
+                    Task {
+                        _ = try? await SampleMeeting.create(in: context)
+                        creatingSample = false
+                        dismiss()
+                    }
+                } label: {
+                    HStack {
+                        Label("Test with a sample meeting", systemImage: "person.2.wave.2")
+                        if creatingSample { Spacer(); ProgressView() }
+                    }
+                }
+                .disabled(creatingSample)
             } header: {
                 Text("Diagnostics")
             } footer: {
-                Text("If Loopnote ever crashes, iOS delivers a report here within a day. Share it so the cause can be fixed.")
+                Text("If Loopnote ever crashes, iOS delivers a report here within a day. Share it so the cause can be fixed. The sample meeting is read aloud by your device's voice and then transcribed and summarized like a real one.")
             }
 
             Section {

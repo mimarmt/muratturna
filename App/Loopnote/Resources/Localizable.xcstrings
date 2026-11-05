@@ -4802,6 +4802,54 @@
           }
         }
       }
+    },
+    "Test with a sample meeting": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Örnek toplantıyla test et"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Beispielbesprechung testen"
+          }
+        }
+      }
+    },
+    "Sample meeting": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Örnek toplantı"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beispielbesprechung"
+          }
+        }
+      }
+    },
+    "If Loopnote ever crashes, iOS delivers a report here within a day. Share it so the cause can be fixed. The sample meeting is read aloud by your device's voice and then transcribed and summarized like a real one.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote çökerse iOS bir gün içinde raporu buraya getirir. Sebebin düzeltilebilmesi için paylaş. Örnek toplantı cihazının sesiyle okunur, sonra gerçek bir toplantı gibi yazıya dökülüp özetlenir."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn Loopnote abstürzt, liefert iOS den Bericht innerhalb eines Tages hier. Teile ihn, damit die Ursache behoben werden kann. Die Beispielbesprechung wird von der Stimme deines Geräts vorgelesen und dann wie eine echte transkribiert und zusammengefasst."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
