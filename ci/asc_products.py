@@ -48,16 +48,26 @@ def call(method, path, body=None, quiet409=True):
                                  data=json.dumps(body).encode() if body is not None else None,
                                  headers={"Authorization": "Bearer " + token(),
                                           "Content-Type": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=90) as r:
-            raw = r.read()
-            return json.loads(raw) if raw else {}
-    except urllib.error.HTTPError as e:
-        detail = e.read().decode()[:600]
-        if e.code == 409 and quiet409:
-            return {"_conflict": detail}
-        print(f"!! {method} {path} -> HTTP {e.code}: {detail}")
-        return None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(req, timeout=90) as r:
+                raw = r.read()
+                return json.loads(raw) if raw else {}
+        except urllib.error.HTTPError as e:
+            detail = " ".join(e.read().decode().split())[:300]
+            if e.code == 409 and quiet409:
+                return {"_conflict": detail}
+            if e.code >= 500 and attempt < 3:
+                # Apple's API returns occasional 500s under load; back off and retry.
+                time.sleep(2 * (attempt + 1))
+                req = urllib.request.Request(url, method=method,
+                                             data=json.dumps(body).encode() if body is not None else None,
+                                             headers={"Authorization": "Bearer " + token(),
+                                                      "Content-Type": "application/json"})
+                continue
+            print(f"!! {method} {path} -> HTTP {e.code}: {detail}")
+            return None
+    return None
 
 
 def get_all(path):
