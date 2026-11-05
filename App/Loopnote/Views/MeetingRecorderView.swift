@@ -151,8 +151,7 @@ struct MeetingRecorderView: View {
         meeting.project = projects.first { $0.id == projectID }
         context.insert(meeting)
         try? context.save()
-        AppRouter.shared.tab = .meetings
-        AppRouter.shared.openMeetingID = meeting.id
+        AppRouter.shared.openMeeting(meeting.id)
         // Close the recorder at once. Processing starts once the audio file is closed,
         // which happens off the main thread and never holds up the screen.
         Trace.log("recorder: meeting saved, closing")
