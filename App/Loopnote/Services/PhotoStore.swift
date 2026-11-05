@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModels
 import SwiftUI
 import UIKit
 import Vision
@@ -61,6 +62,30 @@ enum PhotoStore {
         format.scale = 1
         return UIGraphicsImageRenderer(size: size, format: format).image { _ in
             image.draw(in: CGRect(origin: .zero, size: size))
+        }
+    }
+
+    /// iOS 27: the on-device model looks at the photo and suggests a reminder sentence
+    /// ("Check the missing balcony railing on the 3rd floor").
+    static func suggestTitle(for image: UIImage, language: String) async -> String? {
+        guard #available(iOS 27.0, *), TitleSummarizer.isModelAvailable, let cg = image.cgImage else { return nil }
+        let languageName = Locale(identifier: "en").localizedString(forIdentifier: language) ?? language
+        let orientation = CGImagePropertyOrientation(image.imageOrientation)
+        let session = LanguageModelSession(instructions: """
+            You look at a photo someone took to remember something, often on a construction site,
+            in an office or of a document. Reply with ONE short reminder sentence of at most 10 words,
+            in \(languageName), saying what needs to be done or checked. No quotes, no trailing period.
+            """)
+        do {
+            let response = try await session.respond {
+                "What should this photo remind me to do?"
+                Attachment(cg, orientation: orientation)
+            }
+            let text = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\"'.“”"))
+            return text.isEmpty ? nil : text
+        } catch {
+            return nil
         }
     }
 

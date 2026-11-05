@@ -23,7 +23,7 @@ jobs:
   core-tests:
     name: Core tests
     if: github.event_name != 'workflow_dispatch' && !contains(github.event.head_commit.message || '', '[testflight]')
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
   build:
     name: Build app (simulator)
     if: github.event_name != 'workflow_dispatch' && !contains(github.event.head_commit.message || '', '[testflight]')
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
     name: Upload to TestFlight
     # Runs on its own so a release needs only one macOS runner.
     if: (github.event_name == 'workflow_dispatch' && inputs.testflight) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[testflight]'))
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 60
     env:
       BUNDLE_ID: com.muratturna.loopnote

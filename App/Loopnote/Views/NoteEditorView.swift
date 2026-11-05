@@ -283,6 +283,12 @@ struct NoteEditorView: View {
             details = photoText
             await suggestTitle(force: true)
         }
+        // iOS 27: let the model look at the photo itself (site defects, objects, whiteboards).
+        if spokenTitle.isBlank,
+           let seen = await PhotoStore.suggestTitle(for: image, language: LanguageDetector.fallback) {
+            spokenTitle = seen
+            if details.isBlank { details = seen }
+        }
     }
 
     private var spokenTitleSection: some View {

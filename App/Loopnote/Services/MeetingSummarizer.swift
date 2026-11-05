@@ -37,8 +37,12 @@ enum MeetingSummarizer {
     static let chunkSize = 2_500
 
     static func minutes(for transcript: String, language: String) async -> MeetingMinutes {
-        guard TitleSummarizer.isModelAvailable else { return fallback(transcript) }
         let languageName = Locale(identifier: "en").localizedString(forIdentifier: language) ?? language
+        // iOS 27: Apple's larger server model (Private Cloud Compute) reads the whole meeting at once.
+        if #available(iOS 27.0, *), let pcc = await privateCloudMinutes(transcript, languageName: languageName) {
+            return pcc
+        }
+        guard TitleSummarizer.isModelAvailable else { return fallback(transcript) }
 
         do {
             var material = transcript
@@ -68,6 +72,28 @@ enum MeetingSummarizer {
                     .map { MeetingAction(task: $0.task, owner: $0.owner, due: $0.due) })
         } catch {
             return fallback(transcript)
+        }
+    }
+
+    @available(iOS 27.0, *)
+    private static func privateCloudMinutes(_ transcript: String, languageName: String) async -> MeetingMinutes? {
+        let model = PrivateCloudComputeLanguageModel()
+        guard model.isAvailable, !model.quotaUsage.isLimitReached else { return nil }
+        let session = LanguageModelSession(model: model, instructions: """
+            You write clear, complete meeting minutes in \(languageName) from a full transcript.
+            Lines may start with a speaker label such as "Speaker 1:". Only include facts that were said.
+            Do not invent names, dates or tasks. Capture every concrete decision and follow-up task.
+            """)
+        do {
+            let result = try await session.respond(to: transcript, generating: GeneratedMinutes.self).content
+            return MeetingMinutes(
+                title: result.title,
+                summary: result.summary,
+                decisions: result.decisions.filter { !$0.isBlank },
+                actions: result.actions.filter { !$0.task.isBlank }
+                    .map { MeetingAction(task: $0.task, owner: $0.owner, due: $0.due) })
+        } catch {
+            return nil
         }
     }
 
