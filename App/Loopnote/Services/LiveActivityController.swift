@@ -10,7 +10,12 @@ enum LiveActivityController {
         Activity<Attributes>.activities.filter { $0.attributes.kind == kind }
     }
 
-    private static var enabled: Bool { ActivityAuthorizationInfo().areActivitiesEnabled }
+    /// UI smoke tests skip Live Activities: a ticking countdown in the Dynamic Island keeps
+    /// SpringBoard busy, and the test runner waits for it to settle before every step.
+    private static var enabled: Bool {
+        !ProcessInfo.processInfo.arguments.contains("-uitest")
+            && ActivityAuthorizationInfo().areActivitiesEnabled
+    }
 
     // MARK: Fire-and-forget entry points
 
