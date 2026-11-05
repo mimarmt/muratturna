@@ -4850,6 +4850,86 @@
           }
         }
       }
+    },
+    "No steps recorded yet.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Henüz kayıtlı adım yok."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Schritte aufgezeichnet."
+          }
+        }
+      }
+    },
+    "Share step log": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adım kaydını paylaş"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schrittprotokoll teilen"
+          }
+        }
+      }
+    },
+    "Clear step log": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adım kaydını temizle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schrittprotokoll löschen"
+          }
+        }
+      }
+    },
+    "Step log": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adım kaydı"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schrittprotokoll"
+          }
+        }
+      }
+    },
+    "The newest step is on top. If Loopnote freezes, reopen it and send a screenshot of this list.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En yeni adım en üstte. Loopnote donarsa uygulamayı yeniden aç ve bu listenin ekran görüntüsünü gönder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der neueste Schritt steht oben. Wenn Loopnote hängt, öffne es erneut und sende einen Screenshot dieser Liste."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

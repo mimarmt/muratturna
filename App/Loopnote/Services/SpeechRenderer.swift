@@ -114,7 +114,6 @@ final class SpeechRenderer {
     /// Runs off the main actor: the synthesizer calls back on its own queue.
     nonisolated private static func render(text: String, voiceIdentifier: String?, language: String,
                                            rate: Float, to url: URL) async throws {
-        let synthesizer = AVSpeechSynthesizer()
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voiceIdentifier.flatMap(AVSpeechSynthesisVoice.init(identifier:))
             ?? AVSpeechSynthesisVoice(language: language)
@@ -122,26 +121,8 @@ final class SpeechRenderer {
         utterance.preUtteranceDelay = 0.25
         utterance.postUtteranceDelay = 0.2
         let state = WriteState()
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            // A voice that is missing or still downloading may never deliver the final empty
-            // buffer; never let one sound hold up scheduling.
-            DispatchQueue.global().asyncAfter(deadline: .now() + 20) {
-                state.finish { cont.resume(throwing: CancellationError()) }
-            }
-            synthesizer.write(utterance) { buffer in
-                guard let pcm = buffer as? AVAudioPCMBuffer else { return }
-                if pcm.frameLength == 0 {
-                    state.finish { cont.resume() }
-                    return
-                }
-                do {
-                    try state.write(pcm, to: url)
-                } catch {
-                    state.finish { cont.resume(throwing: error) }
-                }
-            }
-        }
-        withExtendedLifetime(synthesizer) {}
+        try await SpeechWriter.write(utterance) { pcm in try state.write(pcm, to: url) }
+        state.finish {}
     }
 
     /// FNV-1a; stable across launches (unlike `Hasher`).

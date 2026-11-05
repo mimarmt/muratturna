@@ -44,13 +44,16 @@ enum SampleMeeting {
     /// Creates the recording and the meeting, then starts processing. Returns the meeting.
     @MainActor
     static func create(in context: ModelContext) async throws -> Meeting {
+        Trace.log("sample: start")
         let language = LanguageDetector.fallback
         // One voice: voices can differ in sample rate, and the recording must be one format.
         let ids = [VoiceCatalog.voice(for: language, allowPersonal: false)?.identifier].compactMap { $0 }
+        Trace.log("sample: voice chosen (\(ids.first ?? "default"))")
         let lines = script(for: language)
         let fileName = "sample-\(UUID().uuidString).caf"
         let url = Meeting.directory.appendingPathComponent(fileName)
         let duration = try await render(lines, voiceIDs: ids, language: language, to: url)
+        Trace.log("sample: audio ready, \(Int(duration)) s")
 
         let meeting = Meeting(title: String(localized: "Sample meeting"), audioFileName: fileName,
                               duration: duration, language: language)
@@ -59,6 +62,7 @@ enum SampleMeeting {
         AppRouter.shared.tab = .meetings
         AppRouter.shared.openMeetingID = meeting.id
         MeetingProcessor.shared.start(meeting)
+        Trace.log("sample: processing started")
         return meeting
     }
 
@@ -66,7 +70,8 @@ enum SampleMeeting {
     nonisolated private static func render(_ lines: [Line], voiceIDs: [String], language: String,
                                            to url: URL) async throws -> Double {
         let output = OutputFile(url: url)
-        for line in lines {
+        for (n, line) in lines.enumerated() {
+            Trace.log("sample: line \(n + 1)/\(lines.count)")
             let id = voiceIDs.isEmpty ? nil : voiceIDs[line.speaker % voiceIDs.count]
             try await speak(line.text, voiceID: id, language: language, into: output)
         }
@@ -75,31 +80,12 @@ enum SampleMeeting {
 
     nonisolated private static func speak(_ text: String, voiceID: String?, language: String,
                                           into output: OutputFile) async throws {
-        let synthesizer = AVSpeechSynthesizer()
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voiceID.flatMap(AVSpeechSynthesisVoice.init(identifier:))
             ?? AVSpeechSynthesisVoice(language: language)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         utterance.postUtteranceDelay = 0.6
-        let once = Once()
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            DispatchQueue.global().asyncAfter(deadline: .now() + 30) {
-                once.run { cont.resume() }
-            }
-            synthesizer.write(utterance) { buffer in
-                guard let pcm = buffer as? AVAudioPCMBuffer else { return }
-                if pcm.frameLength == 0 {
-                    once.run { cont.resume() }
-                    return
-                }
-                do {
-                    try output.append(pcm)
-                } catch {
-                    once.run { cont.resume(throwing: error) }
-                }
-            }
-        }
-        withExtendedLifetime(synthesizer) {}
+        try await SpeechWriter.write(utterance) { pcm in try output.append(pcm) }
         output.appendSilence(seconds: 0.5)
     }
 }
@@ -151,18 +137,5 @@ private final class OutputFile: @unchecked Sendable {
         let seconds = format.map { Double(frames) / $0.sampleRate } ?? 0
         file = nil
         return seconds
-    }
-}
-
-private final class Once: @unchecked Sendable {
-    private let lock = NSLock()
-    private var done = false
-
-    func run(_ body: () -> Void) {
-        lock.lock()
-        guard !done else { lock.unlock(); return }
-        done = true
-        lock.unlock()
-        body()
     }
 }

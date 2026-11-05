@@ -88,7 +88,9 @@ final class MeetingRecorder {
         LiveActivityController.endMeeting()
         nonisolated(unsafe) let r = recorder
         finalized = Task.detached(priority: .userInitiated) {
+            Trace.log("recorder: closing file")
             r.stop()
+            Trace.log("recorder: file closed")
             try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         }
         return (fileName, duration)

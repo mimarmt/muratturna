@@ -73,6 +73,8 @@ final class AlertScheduler {
     }
 
     private func performReschedule() async {
+        Trace.log("schedule: start")
+        defer { Trace.log("schedule: end") }
         let context = Persistence.container.mainContext
         let now = Date.now
         let notes = (try? context.fetch(FetchDescriptor<Note>())) ?? []
