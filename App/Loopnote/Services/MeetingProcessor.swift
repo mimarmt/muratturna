@@ -23,6 +23,7 @@ final class MeetingProcessor {
     private var currentTask: BGContinuedProcessingTask?
 
     func setStage(_ s: Stage) {
+        Trace.log("processor: stage \(s)")
         stage = s
         let text: String = switch s {
         case .downloadingModel: String(localized: "Downloading the speech model…")
@@ -96,10 +97,13 @@ final class MeetingProcessor {
         // Counted before the work and cleared after it: a count left behind means the app
         // was terminated while processing this meeting.
         Self.countAttempt(for: id)
+        Trace.log("processor: run (attempt \(Self.attempts(for: id)))")
         defer { inFlight.remove(id); currentTask = nil; Self.clearAttempts(for: id) }
         task?.progress.totalUnitCount = 100
         task?.progress.completedUnitCount = 5
-        return await process(meeting, task: task)
+        let ok = await process(meeting, task: task)
+        Trace.log("processor: done, ok=\(ok) status=\(meeting.status.rawValue)")
+        return ok
     }
 
     private func process(_ meeting: Meeting, task: BGContinuedProcessingTask?) async -> Bool {
@@ -138,6 +142,7 @@ final class MeetingProcessor {
         let language = LanguageDetector.speechLanguage(for: meeting.transcript)
         meeting.language = language
         let transcript = meeting.transcript
+        Trace.log("processor: summarizing \(transcript.count) chars")
         let minutes = (try? await withTimeout(seconds: 90) {
             await MeetingSummarizer.minutes(for: transcript, language: language)
         }) ?? MeetingSummarizer.fallback(transcript)
@@ -191,6 +196,7 @@ enum MeetingTranscription {
     }
 
     static func transcribe(_ url: URL, language: String, duration: Double) async throws -> String {
+        Trace.log("transcribe: \(language), \(Int(duration)) s")
         // High-accuracy Whisper when the user turned it on and the model is installed.
         if UserDefaults.standard.bool(forKey: AppSettings.Key.useWhisper), WhisperService.isReady {
             await MeetingProcessor.shared.setStage(.transcribing)
@@ -203,6 +209,7 @@ enum MeetingTranscription {
             _ = await spans
         }
         if let locale = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: language)) {
+            Trace.log("transcribe: SpeechTranscriber \(locale.identifier)")
             // Diarization is a bonus: skipped for short clips, time-limited for long ones,
             // and never allowed to hold up the transcript.
             guard duration >= 45 else {
@@ -217,6 +224,7 @@ enum MeetingTranscription {
         }
         // Languages the long-form model lacks (e.g. Turkish): the on-device dictation model.
         if let locale = await dictationLocale(for: language) {
+            Trace.log("transcribe: DictationTranscriber \(locale.identifier)")
             guard duration >= 45 else {
                 let pieces = try await withDictation(url, locale: locale)
                 return SpeakerDiarization.label(pieces, with: [])
@@ -227,6 +235,7 @@ enum MeetingTranscription {
             await MeetingProcessor.shared.setStage(.speakers)
             return SpeakerDiarization.label(pieces, with: await spans)
         }
+        Trace.log("transcribe: legacy recognizer")
         return try await withLegacyRecognizer(url, language: language)
     }
 
@@ -262,12 +271,15 @@ enum MeetingTranscription {
             return pieces
         }
         let file = try AVAudioFile(forReading: url)
+        Trace.log("analyzer: reading \(file.length) frames")
         if let last = try await analyzer.analyzeSequence(from: file) {
             try await analyzer.finalizeAndFinish(through: last)
         } else {
             try await analyzer.cancelAndFinishNow()
         }
-        return try await collector.value
+        let pieces = try await collector.value
+        Trace.log("analyzer: \(pieces.count) pieces")
+        return pieces
     }
 
     private static func dictationLocale(for language: String) async -> Locale? {
@@ -279,6 +291,7 @@ enum MeetingTranscription {
 
     private static func withDictation(_ url: URL, locale: Locale) async throws -> [SpeakerDiarization.Piece] {
         let transcriber = DictationTranscriber(locale: locale, preset: .longDictation)
+        Trace.log("dictation: checking model")
         if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
             await MeetingProcessor.shared.setStage(.downloadingModel)
             try await request.downloadAndInstall()
@@ -298,12 +311,15 @@ enum MeetingTranscription {
             return pieces
         }
         let file = try AVAudioFile(forReading: url)
+        Trace.log("analyzer: reading \(file.length) frames")
         if let last = try await analyzer.analyzeSequence(from: file) {
             try await analyzer.finalizeAndFinish(through: last)
         } else {
             try await analyzer.cancelAndFinishNow()
         }
-        return try await collector.value
+        let pieces = try await collector.value
+        Trace.log("analyzer: \(pieces.count) pieces")
+        return pieces
     }
 
     /// Last resort: the classic recognizer, fed 45-second slices so nothing past the

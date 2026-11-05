@@ -154,6 +154,25 @@ struct SettingsView: View {
             }
 
             Section {
+                let lines = Trace.recent
+                if lines.isEmpty {
+                    Text("No steps recorded yet.").foregroundStyle(.secondary)
+                } else {
+                    Text(lines.joined(separator: "\n"))
+                        .font(.system(.caption2, design: .monospaced))
+                        .textSelection(.enabled)
+                    ShareLink(item: Trace.fileURL) {
+                        Label("Share step log", systemImage: "square.and.arrow.up")
+                    }
+                    Button("Clear step log", role: .destructive) { Trace.clear() }
+                }
+            } header: {
+                Text("Step log")
+            } footer: {
+                Text("The newest step is on top. If Loopnote freezes, reopen it and send a screenshot of this list.")
+            }
+
+            Section {
                 LabeledContent("Version", value: Bundle.main.versionString)
                 LabeledContent("On-device intelligence",
                                value: TitleSummarizer.isModelAvailable ? String(localized: "Available")

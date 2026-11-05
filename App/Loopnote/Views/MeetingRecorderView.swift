@@ -138,7 +138,9 @@ struct MeetingRecorderView: View {
     }
 
     private func finish() {
+        Trace.log("recorder: finish tapped")
         guard let result = recorder.stop() else { dismiss(); return }
+        Trace.log("recorder: stopped, \(Int(result.duration)) s")
         let title = String(localized: "Meeting") + " " + Date.now.formatted(date: .abbreviated, time: .shortened)
         let meeting = Meeting(title: title, audioFileName: result.fileName,
                               duration: result.duration, language: language)
@@ -148,6 +150,7 @@ struct MeetingRecorderView: View {
         AppRouter.shared.tab = .meetings
         AppRouter.shared.openMeetingID = meeting.id
         // Close the recorder first; processing starts on the next turn of the run loop.
+        Trace.log("recorder: meeting saved, closing")
         dismiss()
         Task { MeetingProcessor.shared.start(meeting) }
     }

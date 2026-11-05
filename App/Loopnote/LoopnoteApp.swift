@@ -24,6 +24,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        Trace.log("launch \(Bundle.main.versionString)")
+        Trace.startWatchdog()
         AppSettings.registerDefaults()
         if ProcessInfo.processInfo.arguments.contains("-uitest") {
             UserDefaults.standard.set(true, forKey: AppSettings.Key.onboarded)
