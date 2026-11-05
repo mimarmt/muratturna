@@ -75,31 +75,12 @@ enum SampleMeeting {
 
     nonisolated private static func speak(_ text: String, voiceID: String?, language: String,
                                           into output: OutputFile) async throws {
-        let synthesizer = AVSpeechSynthesizer()
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voiceID.flatMap(AVSpeechSynthesisVoice.init(identifier:))
             ?? AVSpeechSynthesisVoice(language: language)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         utterance.postUtteranceDelay = 0.6
-        let once = Once()
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            DispatchQueue.global().asyncAfter(deadline: .now() + 30) {
-                once.run { cont.resume() }
-            }
-            synthesizer.write(utterance) { buffer in
-                guard let pcm = buffer as? AVAudioPCMBuffer else { return }
-                if pcm.frameLength == 0 {
-                    once.run { cont.resume() }
-                    return
-                }
-                do {
-                    try output.append(pcm)
-                } catch {
-                    once.run { cont.resume(throwing: error) }
-                }
-            }
-        }
-        withExtendedLifetime(synthesizer) {}
+        try await SpeechWriter.write(utterance) { pcm in try output.append(pcm) }
         output.appendSilence(seconds: 0.5)
     }
 }
@@ -151,18 +132,5 @@ private final class OutputFile: @unchecked Sendable {
         let seconds = format.map { Double(frames) / $0.sampleRate } ?? 0
         file = nil
         return seconds
-    }
-}
-
-private final class Once: @unchecked Sendable {
-    private let lock = NSLock()
-    private var done = false
-
-    func run(_ body: () -> Void) {
-        lock.lock()
-        guard !done else { lock.unlock(); return }
-        done = true
-        lock.unlock()
-        body()
     }
 }
