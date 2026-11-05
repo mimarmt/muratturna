@@ -11,6 +11,9 @@ for runtime in reversed(ios):
         print(phones[-1]['udid']); break
 ")
 echo "Simulator: $SIM"
+# Boot and wait for the simulator first: a cold boot during the test often times out the launch.
+xcrun simctl boot "$SIM" 2>/dev/null || true
+xcrun simctl bootstatus "$SIM" -b || true
 RESULT=DerivedData/smoke.xcresult
 rm -rf "$RESULT"
 set +e
