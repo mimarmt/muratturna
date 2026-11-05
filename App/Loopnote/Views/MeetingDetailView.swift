@@ -36,6 +36,7 @@ struct MeetingDetailView: View {
                 }
             }
             if !meeting.actions.isEmpty { actionsSection }
+            if meeting.status == .ready { shareSection }
             if !meeting.transcript.isBlank {
                 Section {
                     DisclosureGroup("Transcript", isExpanded: $showTranscript) {
@@ -160,6 +161,32 @@ struct MeetingDetailView: View {
         }
     }
 
+    /// Large, obvious share buttons at the end of the minutes.
+    private var shareSection: some View {
+        Section("Share") {
+            Grid(horizontalSpacing: 12, verticalSpacing: 12) {
+                GridRow {
+                    ShareTile(title: "WhatsApp", symbol: "message.fill") {
+                        if let u = MeetingExport.whatsAppURL(meeting) { openURL(u) }
+                    }
+                    ShareTile(title: "Mail", symbol: "envelope.fill") {
+                        if let u = MeetingExport.mailURL(meeting) { openURL(u) }
+                    }
+                }
+                GridRow {
+                    ShareTile(title: "PDF", symbol: "doc.richtext.fill") {
+                        if let u = MeetingExport.pdf(meeting) { shareItem = ShareItem(items: [u]) }
+                    }
+                    ShareTile(title: "Copy", symbol: "doc.on.doc.fill") {
+                        UIPasteboard.general.string = MeetingExport.text(meeting, bold: false)
+                    }
+                }
+            }
+            .padding(.vertical, 6)
+            .listRowBackground(Color.clear)
+        }
+    }
+
     private var shareMenu: some View {
         Menu {
             Button { if let u = MeetingExport.whatsAppURL(meeting) { openURL(u) } } label: {
@@ -258,4 +285,23 @@ struct ShareSheet: UIViewControllerRepresentable {
         UIActivityViewController(activityItems: items, applicationActivities: nil)
     }
     func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+}
+
+private struct ShareTile: View {
+    let title: LocalizedStringKey
+    let symbol: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: symbol).font(.title2)
+                Text(title).font(.subheadline.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity, minHeight: 76)
+        }
+        .buttonStyle(.glass)
+        .tint(Theme.amber)
+        .accessibilityIdentifier("share.\(symbol)")
+    }
 }
