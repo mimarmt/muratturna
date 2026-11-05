@@ -38,9 +38,7 @@ final class LoopnoteSmokeTests: XCTestCase {
         app.buttons["toolbar.settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Settings did not open")
         app.buttons["settings.done"].tap()
-        let settingsGone = NSPredicate(format: "exists == false")
-        expectation(for: settingsGone, evaluatedWith: app.navigationBars["Settings"])
-        waitForExpectations(timeout: 10)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForNonExistence(timeout: 10), "Settings did not close")
 
         // Meetings tab and recorder. The Liquid Glass tab bar is not always reported as a
         // TabBar element, so look for the tab button anywhere.

@@ -95,7 +95,8 @@ jobs:
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
-          pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
+          python3 -m pip install --quiet --break-system-packages pyjwt cryptography || python3 -m pip install --quiet --user pyjwt cryptography
+          python3 -c "import jwt, cryptography; print('jwt ok')"
           python3 ci/install-asc-key.py
           mkdir -p ~/.appstoreconnect/private_keys
           cp "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8" ~/.appstoreconnect/private_keys/
