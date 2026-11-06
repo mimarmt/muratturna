@@ -4930,6 +4930,70 @@
           }
         }
       }
+    },
+    "Preparing the model for this version (a few minutes, once)…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model bu sürüm için hazırlanıyor (bir kez, birkaç dakika)…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Modell wird für diese Version vorbereitet (einmalig, einige Minuten)…"
+          }
+        }
+      }
+    },
+    "Special words": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel kelimeler"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene Begriffe"
+          }
+        }
+      }
+    },
+    "Names, companies, terms (comma separated)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İsimler, firmalar, terimler (virgülle ayır)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Namen, Firmen, Begriffe (durch Kommas getrennt)"
+          }
+        }
+      }
+    },
+    "Uses OpenAI's Whisper large-v3 entirely on your iPhone for the most accurate Turkish, English and German meeting transcripts. Download over Wi-Fi; recordings never leave the device. Special words and project names are spelled as you write them.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En isabetli Türkçe, İngilizce ve Almanca toplantı metinleri için OpenAI'nin Whisper large-v3 modelini tamamen iPhone'unda kullanır. Wi-Fi ile indir; kayıtlar cihazdan asla çıkmaz. Özel kelimeler ve proje adları yazdığın gibi yazılır."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzt OpenAIs Whisper large-v3 vollständig auf deinem iPhone für die genauesten Besprechungsprotokolle auf Türkisch, Englisch und Deutsch. Lade es über WLAN; Aufnahmen verlassen nie das Gerät. Eigene Begriffe und Projektnamen werden so geschrieben, wie du sie eingibst."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

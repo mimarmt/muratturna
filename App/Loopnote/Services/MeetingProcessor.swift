@@ -12,7 +12,7 @@ import UIKit
 @Observable
 final class MeetingProcessor {
     static let shared = MeetingProcessor()
-    static let taskPrefix = "com.muratturna.loopnote.meeting."
+    nonisolated static let taskPrefix = "com.muratturna.loopnote.meeting."
 
     /// Meetings being processed right now (so resume never runs one twice).
     private var inFlight = Set<UUID>()
@@ -32,6 +32,84 @@ final class MeetingProcessor {
         case .summarizing: String(localized: "Finding decisions and action items…")
         }
         currentTask?.updateTitle(String(localized: "Writing meeting minutes"), subtitle: text)
+        progressUnits = switch s {
+        case .downloadingModel: 5
+        case .transcribing: 10
+        case .speakers: 50
+        case .summarizing: 70
+        }
+        currentTask?.progress.completedUnitCount = progressUnits
+    }
+
+    private var progressUnits: Int64 = 5
+
+    /// Asks iOS to keep the processing going in the background, with its progress on the Lock
+    /// Screen (BGContinuedProcessingTask). Registering and submitting run off the main thread,
+    /// and the processing itself already runs in the app: if iOS declines, nothing changes.
+    nonisolated static func requestContinuedProcessing(for id: UUID) {
+        let identifier = taskPrefix + id.uuidString.replacingOccurrences(of: "-", with: "")
+        let title = String(localized: "Writing meeting minutes")
+        let subtitle = String(localized: "Transcribing…")
+        Task.detached(priority: .utility) {
+            let registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
+                guard let task = task as? BGContinuedProcessingTask else {
+                    task.setTaskCompleted(success: false)
+                    return
+                }
+                nonisolated(unsafe) let bgTask = task
+                Task { @MainActor in await MeetingProcessor.shared.attach(bgTask, to: id) }
+            }
+            guard registered else {
+                Trace.log("processor: background processing not registered")
+                return
+            }
+            let request = BGContinuedProcessingTaskRequest(identifier: identifier, title: title, subtitle: subtitle)
+            request.strategy = .fail
+            do {
+                try BGTaskScheduler.shared.submit(request)
+                Trace.log("processor: background processing requested")
+            } catch {
+                Trace.log("processor: background processing declined (\(error.localizedDescription))")
+            }
+        }
+    }
+
+    /// Keeps the system's continued-processing task open while the meeting is processed, so
+    /// iOS lets Loopnote finish in the background and shows the progress.
+    func attach(_ task: BGContinuedProcessingTask, to id: UUID) async {
+        Trace.log("processor: background processing started")
+        currentTask = task
+        task.progress.totalUnitCount = 100
+        task.progress.completedUnitCount = progressUnits
+        final class Once: @unchecked Sendable { var done = false }
+        let once = Once()
+        nonisolated(unsafe) let expiring = task
+        task.expirationHandler = {
+            // iOS needs the task completed on expiry; the meeting resumes when Loopnote opens.
+            Trace.log("processor: background processing expired")
+            DispatchQueue.main.async {
+                guard !once.done else { return }
+                once.done = true
+                expiring.setTaskCompleted(success: false)
+            }
+        }
+        var waited = 0
+        while !inFlight.contains(id) && waited < 40 {
+            try? await Task.sleep(for: .milliseconds(250))
+            waited += 1
+        }
+        while inFlight.contains(id) {
+            try? await Task.sleep(for: .seconds(1))
+        }
+        let context = Persistence.container.mainContext
+        let meeting = try? context.fetch(FetchDescriptor<Meeting>(predicate: #Predicate { $0.id == id })).first
+        let ok = meeting?.status == .ready
+        task.progress.completedUnitCount = 100
+        if currentTask === task { currentTask = nil }
+        guard !once.done else { return }
+        once.done = true
+        task.setTaskCompleted(success: ok)
+        Trace.log("processor: background processing finished, ok=\(ok)")
     }
 
     /// Fetches speech and speaker models in the background so the first meeting is fast.
@@ -52,6 +130,14 @@ final class MeetingProcessor {
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
         let key = "whisper.compiledForBuild"
         guard UserDefaults.standard.string(forKey: key) != build else { return }
+        whisperPreparing = true
+        // Extra time so the compile goes on for a while after the app is closed. The
+        // expiration handler must end the task, or iOS terminates the app.
+        let box = BackgroundTimeBox()
+        box.id = UIApplication.shared.beginBackgroundTask(withName: "whisper-compile") {
+            Trace.log("whisper: background time ran out; compile continues when Loopnote opens")
+            box.end()
+        }
         Task.detached(priority: .utility) {
             Trace.log("whisper: compiling model for this version")
             do {
@@ -64,30 +150,50 @@ final class MeetingProcessor {
             } catch {
                 Trace.log("whisper: compile failed")
             }
+            await MainActor.run {
+                MeetingProcessor.shared.whisperPreparing = false
+                box.end()
+            }
         }
     }
+
+    /// Words Whisper should spell as written: built-in names, project names and the user's list.
+    static func vocabulary(in context: ModelContext) -> [String] {
+        var words = ["Claude", "Loopnote"]
+        let projects = (try? context.fetch(FetchDescriptor<Project>())) ?? []
+        words += projects.map(\.name)
+        let custom = UserDefaults.standard.string(forKey: AppSettings.Key.customWords) ?? ""
+        words += custom.split(whereSeparator: { $0 == "," || $0 == "\n" }).map(String.init)
+        var seen = Set<String>()
+        return words.map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && seen.insert($0.lowercased()).inserted }
+            .prefix(40).map { $0 }
+    }
+
+    /// True while the Whisper model is being prepared after an update (shown in Settings).
+    private(set) var whisperPreparing = false
 
     /// True while a meeting is recorded or processed (then a loaded Whisper model is kept).
     var isBusy: Bool { !inFlight.isEmpty || AppRouter.shared.showMeetingRecorder }
 
-    /// Starts processing right away in the app. When the app goes to the background, iOS
-    /// grants extra time to finish; anything left over resumes the next time Loopnote opens.
+    /// Starts processing right away in the app, and asks iOS to let it continue in the
+    /// background (continued processing, with progress on the Lock Screen).
     ///
-    /// (BGContinuedProcessingTask was used here before: registering and submitting it runs
-    /// synchronously on the main thread and froze the app on "Finish" on iOS 27.)
+    /// The background request is registered and submitted off the main thread: done on the
+    /// main thread at "Finish" it once froze the app on iOS 27.
     func start(_ meeting: Meeting) {
         let id = meeting.id
         guard !inFlight.contains(id) else { return }
         Task {
             // The expiration handler must end the task, or iOS terminates the app.
-            final class Box: @unchecked Sendable { var id: UIBackgroundTaskIdentifier = .invalid }
-            let box = Box()
+            let box = BackgroundTimeBox()
             box.id = UIApplication.shared.beginBackgroundTask(withName: "meeting-minutes") {
                 Trace.log("processor: background time ran out; continues when Loopnote opens")
-                if box.id != .invalid { UIApplication.shared.endBackgroundTask(box.id); box.id = .invalid }
+                box.end()
             }
+            Self.requestContinuedProcessing(for: id)
             _ = await run(id: id, task: nil)
-            if box.id != .invalid { UIApplication.shared.endBackgroundTask(box.id); box.id = .invalid }
+            box.end()
         }
     }
 
@@ -126,12 +232,12 @@ final class MeetingProcessor {
         guard let meeting = try? context.fetch(FetchDescriptor<Meeting>(predicate: #Predicate { $0.id == id })).first
         else { return false }
         inFlight.insert(id)
-        currentTask = task
+        if let task { currentTask = task }
         // Counted before the work and cleared after it: a count left behind means the app
         // was terminated while processing this meeting.
         Self.countAttempt(for: id)
         Trace.log("processor: run (attempt \(Self.attempts(for: id)))")
-        defer { inFlight.remove(id); currentTask = nil; Self.clearAttempts(for: id) }
+        defer { inFlight.remove(id); Self.clearAttempts(for: id) }
         task?.progress.totalUnitCount = 100
         task?.progress.completedUnitCount = 5
         let ok = await process(meeting, task: task)
@@ -149,8 +255,10 @@ final class MeetingProcessor {
             do {
                 let language = meeting.language ?? LanguageDetector.fallback
                 let duration = meeting.duration
+                let vocabulary = Self.vocabulary(in: context)
                 meeting.transcript = try await withTimeout(seconds: max(120, duration * 2)) {
-                    try await MeetingTranscription.transcribe(url, language: language, duration: duration)
+                    try await MeetingTranscription.transcribe(url, language: language, duration: duration,
+                                                              vocabulary: vocabulary)
                 }
             } catch {
                 meeting.status = .failed
@@ -201,6 +309,17 @@ final class MeetingProcessor {
     }
 }
 
+/// Holds a UIKit background-task id so its expiration handler can end it exactly once.
+final class BackgroundTimeBox: @unchecked Sendable {
+    var id: UIBackgroundTaskIdentifier = .invalid
+    func end() {
+        let current = id
+        id = .invalid
+        guard current != .invalid else { return }
+        DispatchQueue.main.async { UIApplication.shared.endBackgroundTask(current) }
+    }
+}
+
 struct TimeoutError: LocalizedError {
     var errorDescription: String? {
         String(localized: "Processing took too long. Tap Try again.")
@@ -228,14 +347,15 @@ enum MeetingTranscription {
         var errorDescription: String? { String(localized: "Speech recognition isn’t available for this language on this device.") }
     }
 
-    static func transcribe(_ url: URL, language: String, duration: Double) async throws -> String {
+    static func transcribe(_ url: URL, language: String, duration: Double,
+                           vocabulary: [String] = []) async throws -> String {
         Trace.log("transcribe: \(language), \(Int(duration)) s")
         // High-accuracy Whisper when the user turned it on and the model is installed.
         if UserDefaults.standard.bool(forKey: AppSettings.Key.useWhisper), WhisperService.isReady {
             await MeetingProcessor.shared.setStage(.transcribing)
             async let spans = SpeakerDiarization.speakers(
                 in: url, timeout: duration >= 45 ? min(60, max(20, duration * 0.5)) : 0)
-            if let pieces = try? await WhisperService.shared.transcribe(url, language: language), !pieces.isEmpty {
+            if let pieces = try? await WhisperService.shared.transcribe(url, language: language, vocabulary: vocabulary), !pieces.isEmpty {
                 if duration >= 45 { await MeetingProcessor.shared.setStage(.speakers) }
                 return SpeakerDiarization.label(pieces, with: await spans)
             }

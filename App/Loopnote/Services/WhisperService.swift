@@ -60,11 +60,20 @@ actor WhisperService {
     }
 
     /// Transcribes a file into time-stamped pieces in the given language ("tr", "en", "de").
-    func transcribe(_ url: URL, language: String, waitForModel: Double = 20) async throws -> [SpeakerDiarization.Piece] {
+    func transcribe(_ url: URL, language: String, vocabulary: [String] = [],
+                    waitForModel: Double = 20) async throws -> [SpeakerDiarization.Piece] {
         let pipe = try await model(within: waitForModel)
         let code = String(language.prefix(2))
-        let options = DecodingOptions(task: .transcribe, language: code, skipSpecialTokens: true,
+        var options = DecodingOptions(task: .transcribe, language: code, skipSpecialTokens: true,
                                       chunkingStrategy: .vad)
+        // Names and terms Whisper should spell as written (e.g. "Claude", not "Cloud").
+        let prompt = vocabulary.joined(separator: ", ")
+        if !prompt.isEmpty, let tokenizer = pipe.tokenizer {
+            options.promptTokens = tokenizer.encode(text: " " + prompt)
+                .filter { $0 < tokenizer.specialTokens.specialTokenBegin }
+            options.usePrefillPrompt = true
+            Trace.log("whisper: \(vocabulary.count) custom words")
+        }
         Trace.log("whisper: transcribing")
         let results = try await pipe.transcribe(
             audioPath: url.path,
