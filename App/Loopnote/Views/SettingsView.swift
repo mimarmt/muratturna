@@ -512,6 +512,7 @@ extension AVSpeechSynthesizer {
 /// Opt-in Whisper large-v3 for meeting transcripts (≈600 MB download, on device).
 private struct WhisperSection: View {
     @AppStorage(AppSettings.Key.useWhisper) private var enabled = false
+    @AppStorage(AppSettings.Key.customWords) private var customWords = ""
     @State private var downloading = false
     @State private var ready = WhisperService.isReady
     @State private var error: String?
@@ -530,17 +531,31 @@ private struct WhisperSection: View {
                         ProgressView()
                         Text("Downloading the Whisper model (about 600 MB)…").foregroundStyle(.secondary)
                     }
+                } else if ready && MeetingProcessor.shared.whisperPreparing {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                        Text("Preparing the model for this version (a few minutes, once)…").foregroundStyle(.secondary)
+                    }
                 } else if ready {
                     Label("Model installed", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
                 } else {
                     Button("Download model") { Task { await download() } }
                 }
             }
+            if enabled && ready {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Special words")
+                    TextField("Names, companies, terms (comma separated)", text: $customWords, axis: .vertical)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .foregroundStyle(.secondary)
+                }
+            }
             if let error { Text(error).font(.footnote).foregroundStyle(.red) }
         } header: {
             Text("Meetings")
         } footer: {
-            Text("Uses OpenAI's Whisper large-v3 entirely on your iPhone for the most accurate Turkish, English and German meeting transcripts. Download over Wi-Fi; recordings never leave the device.")
+            Text("Uses OpenAI's Whisper large-v3 entirely on your iPhone for the most accurate Turkish, English and German meeting transcripts. Download over Wi-Fi; recordings never leave the device. Special words and project names are spelled as you write them.")
         }
     }
 

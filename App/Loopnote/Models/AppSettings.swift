@@ -15,6 +15,8 @@ enum AppSettings {
         static let elevenEnabled = "eleven.enabled"
         static let nextNoteActivity = "activity.nextNote"
         static let useWhisper = "transcription.whisper"
+        /// Comma-separated names and terms Whisper should spell correctly.
+        static let customWords = "transcription.words"
         static let elevenVoiceID = "eleven.voice.id"
         static let elevenVoiceName = "eleven.voice.name"
         static let elevenModel = "eleven.model"
