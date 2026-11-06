@@ -59,7 +59,8 @@ final class MeetingProcessor {
                 UserDefaults.standard.set(build, forKey: key)
                 Trace.log("whisper: compiled for build \(build)")
                 // Keep it loaded if a meeting is being recorded or processed; otherwise free the memory.
-                if await !MeetingProcessor.shared.isBusy { await WhisperService.shared.unload() }
+                let busy = await MeetingProcessor.shared.isBusy
+                if !busy { await WhisperService.shared.unload() }
             } catch {
                 Trace.log("whisper: compile failed")
             }
