@@ -52,9 +52,15 @@ final class MeetingProcessor {
         let id = meeting.id
         guard !inFlight.contains(id) else { return }
         Task {
-            let background = UIApplication.shared.beginBackgroundTask(withName: "meeting-minutes")
+            // The expiration handler must end the task, or iOS terminates the app.
+            final class Box: @unchecked Sendable { var id: UIBackgroundTaskIdentifier = .invalid }
+            let box = Box()
+            box.id = UIApplication.shared.beginBackgroundTask(withName: "meeting-minutes") {
+                Trace.log("processor: background time ran out; continues when Loopnote opens")
+                if box.id != .invalid { UIApplication.shared.endBackgroundTask(box.id); box.id = .invalid }
+            }
             _ = await run(id: id, task: nil)
-            if background != .invalid { UIApplication.shared.endBackgroundTask(background) }
+            if box.id != .invalid { UIApplication.shared.endBackgroundTask(box.id); box.id = .invalid }
         }
     }
 

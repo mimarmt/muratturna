@@ -26,6 +26,7 @@ struct RootView: View {
                 .interactiveDismissDisabled()
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
+            Trace.log("app: \(phase)")
             if phase == .active {
                 MeetingProcessor.shared.resumePending()
                 Task { await AlertScheduler.shared.reschedule() }

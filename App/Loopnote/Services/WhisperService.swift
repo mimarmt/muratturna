@@ -24,9 +24,11 @@ actor WhisperService {
 
     private func load() async throws -> WhisperKit {
         if let pipe { return pipe }
+        Trace.log("whisper: loading model")
         let config = WhisperKitConfig(model: Self.model, verbose: false, prewarm: true)
         let p = try await WhisperKit(config)
         pipe = p
+        Trace.log("whisper: model ready")
         return p
     }
 
@@ -36,10 +38,12 @@ actor WhisperService {
         let code = String(language.prefix(2))
         let options = DecodingOptions(task: .transcribe, language: code, skipSpecialTokens: true,
                                       chunkingStrategy: .vad)
+        Trace.log("whisper: transcribing")
         let results = try await pipe.transcribe(
             audioPath: url.path,
             audioInputOptions: AudioInputOptions(audioLoadingMode: .incremental),
             decodeOptions: options)
+        Trace.log("whisper: \(results.count) results")
         return results.flatMap(\.segments).compactMap { segment in
             let text = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !text.isEmpty else { return nil }
