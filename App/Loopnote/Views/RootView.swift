@@ -13,7 +13,7 @@ struct RootView: View {
                 NavigationStack { NotesListView() }
             }
             Tab("Meetings", systemImage: "person.2.wave.2", value: AppRouter.Tab.meetings) {
-                NavigationStack { MeetingsListView() }
+                NavigationStack(path: $router.meetingPath) { MeetingsListView() }
             }
         }
         .tint(Theme.amber)
@@ -26,6 +26,7 @@ struct RootView: View {
                 .interactiveDismissDisabled()
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
+            Trace.log("app: \(phase)")
             if phase == .active {
                 MeetingProcessor.shared.resumePending()
                 Task { await AlertScheduler.shared.reschedule() }

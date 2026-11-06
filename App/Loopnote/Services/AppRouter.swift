@@ -12,7 +12,16 @@ final class AppRouter {
     var tab: Tab = .notes
     var showMeetingRecorder = false
     var startVoiceNote = false
-    var openMeetingID: UUID?
+    /// Navigation inside the Meetings tab. Owned here (not by a view inside a List) so a
+    /// push from Finish or the sample meeting is one plain state change, never a loop.
+    var meetingPath: [UUID] = []
+
+    /// Switches to the Meetings tab and shows one meeting.
+    func openMeeting(_ id: UUID) {
+        Trace.log("router: open meeting")
+        tab = .meetings
+        meetingPath = [id]
+    }
 }
 
 struct LoopnoteShortcuts: AppShortcutsProvider {
