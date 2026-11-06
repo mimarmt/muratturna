@@ -41,7 +41,34 @@ final class MeetingProcessor {
             await MeetingTranscription.prewarm(language: language)
             await SpeakerDiarization.prewarm()
         }
+        prewarmWhisperAfterUpdate()
     }
+
+    /// After each app update iOS compiles the Whisper model again for the Neural Engine, which
+    /// can take minutes. Do it once in the background right after the update is opened, so
+    /// the next meeting loads the model in seconds. The model is unloaded again afterwards.
+    private func prewarmWhisperAfterUpdate() {
+        guard UserDefaults.standard.bool(forKey: AppSettings.Key.useWhisper), WhisperService.isReady else { return }
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
+        let key = "whisper.compiledForBuild"
+        guard UserDefaults.standard.string(forKey: key) != build else { return }
+        Task.detached(priority: .utility) {
+            Trace.log("whisper: compiling model for this version")
+            do {
+                try await WhisperService.shared.prepare()
+                UserDefaults.standard.set(build, forKey: key)
+                Trace.log("whisper: compiled for build \(build)")
+                // Keep it loaded if a meeting is being recorded or processed; otherwise free the memory.
+                let busy = await MeetingProcessor.shared.isBusy
+                if !busy { await WhisperService.shared.unload() }
+            } catch {
+                Trace.log("whisper: compile failed")
+            }
+        }
+    }
+
+    /// True while a meeting is recorded or processed (then a loaded Whisper model is kept).
+    var isBusy: Bool { !inFlight.isEmpty || AppRouter.shared.showMeetingRecorder }
 
     /// Starts processing right away in the app. When the app goes to the background, iOS
     /// grants extra time to finish; anything left over resumes the next time Loopnote opens.
