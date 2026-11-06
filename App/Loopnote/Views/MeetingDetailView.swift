@@ -39,11 +39,29 @@ struct MeetingDetailView: View {
             if meeting.status == .ready { shareSection }
             if !meeting.transcript.isBlank {
                 Section {
-                    DisclosureGroup("Transcript", isExpanded: $showTranscript) {
+                    // Own header row instead of DisclosureGroup: the group indents its
+                    // content, which left the transcript in a narrow column.
+                    Button {
+                        withAnimation(.snappy) { showTranscript.toggle() }
+                    } label: {
+                        HStack {
+                            Text("Transcript").foregroundStyle(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(showTranscript ? 90 : 0))
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    if showTranscript {
                         Text(meeting.transcript)
                             .font(.callout)
                             .foregroundStyle(.secondary)
                             .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -126,24 +144,34 @@ struct MeetingDetailView: View {
         Section {
             TipView(MeetingActionsTip()).tint(Theme.amber)
             ForEach(meeting.actions) { action in
-                HStack(alignment: .top, spacing: 12) {
+                // Text gets the full row width; the Remind button sits under it
+                // instead of beside it, so the task no longer wraps word by word.
+                HStack(alignment: .top, spacing: 10) {
                     Image(systemName: action.noteID == nil ? "circle" : "bell.badge.fill")
                         .foregroundStyle(Theme.amber)
                         .padding(.top, 2)
-                    VStack(alignment: .leading, spacing: 3) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(action.task)
-                        let extra = [action.owner, action.due].filter { !$0.isBlank }
-                        if !extra.isEmpty {
-                            Text(extra.joined(separator: " · ")).font(.footnote).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                        HStack(spacing: 8) {
+                            let extra = [action.owner, action.due].filter { !$0.isBlank }
+                            if !extra.isEmpty {
+                                Text(extra.joined(separator: " · ")).font(.footnote).foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 0)
+                            if action.noteID == nil {
+                                Button { makeReminder(action) } label: {
+                                    Label("Remind", systemImage: "bell")
+                                }
+                                .font(.footnote.weight(.semibold))
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .tint(Theme.amber)
+                            } else {
+                                Text("Reminding").font(.footnote).foregroundStyle(.secondary)
+                            }
                         }
-                    }
-                    Spacer()
-                    if action.noteID == nil {
-                        Button("Remind") { makeReminder(action) }
-                            .buttonStyle(.bordered)
-                            .tint(Theme.amber)
-                    } else {
-                        Text("Reminding").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
             }
