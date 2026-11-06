@@ -56,6 +56,12 @@ final class MeetingRecorder {
             state = .recording
             startMetering()
             LiveActivityController.startMeeting(at: .now)
+            // Load Whisper while recording (the app stays awake in the background then), so
+            // transcription starts at once after Finish instead of spending a minute loading
+            // the model, during which iOS may suspend the app once the screen is locked.
+            if UserDefaults.standard.bool(forKey: AppSettings.Key.useWhisper), WhisperService.isReady {
+                Task.detached(priority: .utility) { try? await WhisperService.shared.prepare() }
+            }
             return true
         } catch {
             errorMessage = error.localizedDescription
