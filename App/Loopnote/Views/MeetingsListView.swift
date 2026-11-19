@@ -7,59 +7,56 @@ struct MeetingsListView: View {
     @State private var path: [UUID] = []
 
     var body: some View {
-        List {
-            ForEach(meetings) { m in
-                NavigationLink(value: m.id) { MeetingRow(meeting: m) }
-            }
-            .onDelete { offsets in
-                for i in offsets {
-                    if let url = meetings[i].audioURL { try? FileManager.default.removeItem(at: url) }
-                    context.delete(meetings[i])
+        // One NavigationStack with one value-based destination. (Mixing a value-based
+        // destination with an isPresented one let the stack push and pop in a loop when a
+        // meeting was opened programmatically, freezing the app after "Finish".)
+        NavigationStack(path: $path) {
+            List {
+                ForEach(meetings) { m in
+                    NavigationLink(value: m.id) { MeetingRow(meeting: m) }
                 }
-                try? context.save()
-            }
-        }
-        .listStyle(.plain)
-        .overlay {
-            if meetings.isEmpty {
-                ContentUnavailableView {
-                    Label("No meetings yet", systemImage: "person.2.wave.2")
-                } description: {
-                    Text("Record a meeting. Loopnote writes the minutes and turns actions into reminders.")
-                } actions: {
-                    Button("Start recording") { AppRouter.shared.showMeetingRecorder = true }
-                        .buttonStyle(.glassProminent)
+                .onDelete { offsets in
+                    for i in offsets {
+                        if let url = meetings[i].audioURL { try? FileManager.default.removeItem(at: url) }
+                        context.delete(meetings[i])
+                    }
+                    try? context.save()
                 }
             }
-        }
-        .navigationTitle("Meetings")
-        .navigationDestination(for: UUID.self) { id in
-            if let m = meetings.first(where: { $0.id == id }) { MeetingDetailView(meeting: m) }
-        }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button { AppRouter.shared.showMeetingRecorder = true } label: {
-                    Image(systemName: "record.circle")
+            .listStyle(.plain)
+            .overlay {
+                if meetings.isEmpty {
+                    ContentUnavailableView {
+                        Label("No meetings yet", systemImage: "person.2.wave.2")
+                    } description: {
+                        Text("Record a meeting. Loopnote writes the minutes and turns actions into reminders.")
+                    } actions: {
+                        Button("Start recording") { AppRouter.shared.showMeetingRecorder = true }
+                            .buttonStyle(.glassProminent)
+                    }
                 }
-                .accessibilityLabel("Start recording")
+            }
+            .navigationTitle("Meetings")
+            .navigationDestination(for: UUID.self) { id in
+                MeetingDetailLoader(id: id)
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button { AppRouter.shared.showMeetingRecorder = true } label: {
+                        Image(systemName: "record.circle")
+                    }
+                    .accessibilityLabel("Start recording")
+                }
             }
         }
         .onChange(of: AppRouter.shared.openMeetingID, initial: true) { _, id in
-            if let id {
+            guard let id else { return }
+            Trace.log("meetings: open \(id.uuidString.prefix(8))")
+            // Applied on the next run-loop turn, outside the current view update.
+            Task { @MainActor in
                 AppRouter.shared.openMeetingID = nil
-                path = [id]
+                if path.last != id { path = [id] }
             }
-        }
-        .modifier(PathBinding(path: $path))
-    }
-}
-
-/// Lets the list drive its parent NavigationStack without owning it.
-private struct PathBinding: ViewModifier {
-    @Binding var path: [UUID]
-    func body(content: Content) -> some View {
-        content.navigationDestination(isPresented: Binding(get: { !path.isEmpty }, set: { if !$0 { path = [] } })) {
-            if let id = path.first { MeetingDetailLoader(id: id) }
         }
     }
 }

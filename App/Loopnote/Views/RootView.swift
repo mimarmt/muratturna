@@ -13,7 +13,7 @@ struct RootView: View {
                 NavigationStack { NotesListView() }
             }
             Tab("Meetings", systemImage: "person.2.wave.2", value: AppRouter.Tab.meetings) {
-                NavigationStack { MeetingsListView() }
+                MeetingsListView()
             }
         }
         .tint(Theme.amber)
