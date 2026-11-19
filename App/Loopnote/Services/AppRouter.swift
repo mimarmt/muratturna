@@ -22,6 +22,22 @@ struct LoopnoteShortcuts: AppShortcutsProvider {
                               "Record a meeting with \(.applicationName)"],
                     shortTitle: "Start meeting",
                     systemImageName: "person.2.wave.2")
+        AppShortcut(intent: ReadNotesIntent(),
+                    phrases: ["Read my notes in \(.applicationName)",
+                              "Read my \(\.$project) notes in \(.applicationName)",
+                              "What are my \(.applicationName) notes"],
+                    shortTitle: "Read notes",
+                    systemImageName: "speaker.wave.2")
+        AppShortcut(intent: AddNoteIntent(),
+                    phrases: ["Add a note to \(.applicationName)",
+                              "Add a note to \(\.$project) in \(.applicationName)"],
+                    shortTitle: "Add note",
+                    systemImageName: "square.and.pencil")
+        AppShortcut(intent: MarkNoteDoneIntent(),
+                    phrases: ["Mark a note done in \(.applicationName)",
+                              "Mark \(\.$note) done in \(.applicationName)"],
+                    shortTitle: "Mark done",
+                    systemImageName: "checkmark.circle")
         AppShortcut(intent: NewVoiceNoteIntent(),
                     phrases: ["New note in \(.applicationName)",
                               "Add a voice note to \(.applicationName)"],

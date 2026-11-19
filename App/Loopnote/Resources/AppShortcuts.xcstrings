@@ -1,0 +1,231 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Start a meeting in ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} ile toplantı başlat",
+              "${applicationName} toplantı kaydı başlat"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Starte eine Besprechung in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Record a meeting with ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} ile toplantıyı kaydet"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Nimm eine Besprechung mit ${applicationName} auf"
+            ]
+          }
+        }
+      }
+    },
+    "New note in ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} yeni not",
+              "${applicationName} ile yeni not"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Neue Notiz in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Add a voice note to ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} sesli not ekle"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Füge ${applicationName} eine Sprachnotiz hinzu"
+            ]
+          }
+        }
+      }
+    },
+    "Read my notes in ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} notlarımı oku",
+              "${applicationName} notlarımı söyle"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Lies meine Notizen in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Read my ${project} notes in ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} ${project} notlarımı oku",
+              "${applicationName} ${project} notlarını oku"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Lies meine ${project} Notizen in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "What are my ${applicationName} notes": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} notlarım neler"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Was sind meine ${applicationName} Notizen"
+            ]
+          }
+        }
+      }
+    },
+    "Add a note to ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} not ekle",
+              "${applicationName} uygulamasına not ekle"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Füge eine Notiz zu ${applicationName} hinzu"
+            ]
+          }
+        }
+      }
+    },
+    "Add a note to ${project} in ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} ${project} projesine not ekle"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Füge in ${applicationName} eine Notiz zu ${project} hinzu"
+            ]
+          }
+        }
+      }
+    },
+    "Mark a note done in ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} bir notu tamamla"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Markiere eine Notiz in ${applicationName} als erledigt"
+            ]
+          }
+        }
+      }
+    },
+    "Mark ${note} done in ${applicationName}": {
+      "localizations": {
+        "tr": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "${applicationName} ${note} notunu tamamla"
+            ]
+          }
+        },
+        "de": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Markiere ${note} in ${applicationName} als erledigt"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -4930,6 +4930,422 @@
           }
         }
       }
+    },
+    "Read my notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlarımı oku"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meine Notizen vorlesen"
+          }
+        }
+      }
+    },
+    "Reads your active notes aloud, optionally only one project's.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkin notlarını sesli okur; istersen yalnızca bir projeninkini."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest deine aktiven Notizen vor, auf Wunsch nur die eines Projekts."
+          }
+        }
+      }
+    },
+    "Details": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayrıntılar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details"
+          }
+        }
+      }
+    },
+    "Next reminder": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonraki hatırlatma"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächste Erinnerung"
+          }
+        }
+      }
+    },
+    "Read notes of ${project}": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${project} notlarını oku"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notizen von ${project} vorlesen"
+          }
+        }
+      }
+    },
+    "You have no active notes in %@.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ içinde etkin notun yok."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast keine aktiven Notizen in %@."
+          }
+        }
+      }
+    },
+    "You have no active notes.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkin notun yok."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast keine aktiven Notizen."
+          }
+        }
+      }
+    },
+    "And %lld more.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ve %lld not daha."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Und %lld weitere."
+          }
+        }
+      }
+    },
+    "%lld notes in %@.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ içinde %1$lld not var."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld Notizen in %2$@."
+          }
+        }
+      }
+    },
+    "You have %lld notes.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld notun var."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast %lld Notizen."
+          }
+        }
+      }
+    },
+    "Add a note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not ekle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notiz hinzufügen"
+          }
+        }
+      }
+    },
+    "Adds a living note. A date or time in the text sets the reminder; otherwise it speaks every morning at 9.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canlı bir not ekler. Metindeki tarih veya saat hatırlatmayı belirler; yoksa her sabah 9'da okunur."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fügt eine lebende Notiz hinzu. Ein Datum oder eine Uhrzeit im Text legt die Erinnerung fest, sonst jeden Morgen um 9."
+          }
+        }
+      }
+    },
+    "What should Loopnote remind you of?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loopnote sana neyi hatırlatsın?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Woran soll Loopnote dich erinnern?"
+          }
+        }
+      }
+    },
+    "Add ${text} to ${project}": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${project} projesine ${text} ekle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${text} zu ${project} hinzufügen"
+          }
+        }
+      }
+    },
+    "The note is empty.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not boş."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Notiz ist leer."
+          }
+        }
+      }
+    },
+    "You have reached the free limit of %lld notes. Open Loopnote to upgrade.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ücretsiz %lld not sınırına ulaştın. Yükseltmek için Loopnote'u aç."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast das kostenlose Limit von %lld Notizen erreicht. Öffne Loopnote für ein Upgrade."
+          }
+        }
+      }
+    },
+    "Added. Loopnote will remind you %@.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eklendi. Loopnote sana %@ hatırlatacak."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinzugefügt. Loopnote erinnert dich %@."
+          }
+        }
+      }
+    },
+    "Added.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eklendi."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinzugefügt."
+          }
+        }
+      }
+    },
+    "Mark a note done": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notu tamamla"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notiz als erledigt markieren"
+          }
+        }
+      }
+    },
+    "Marks a note done so it stops reminding you.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notu tamamlar, artık hatırlatmaz."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markiert eine Notiz als erledigt, damit sie nicht mehr erinnert."
+          }
+        }
+      }
+    },
+    "Mark ${note} done": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${note} notunu tamamla"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${note} als erledigt markieren"
+          }
+        }
+      }
+    },
+    "Done. %@ will not remind you again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamam. %@ artık hatırlatmayacak."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erledigt. %@ erinnert dich nicht mehr."
+          }
+        }
+      }
+    },
+    "Open note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notu aç"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notiz öffnen"
+          }
+        }
+      }
+    },
+    "Read notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notları oku"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notizen vorlesen"
+          }
+        }
+      }
+    },
+    "Add note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not ekle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notiz hinzufügen"
+          }
+        }
+      }
+    },
+    "Mark done": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamamla"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erledigt"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
